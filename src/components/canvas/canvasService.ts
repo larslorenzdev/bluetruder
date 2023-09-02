@@ -10,7 +10,7 @@ import {
   WebGLRenderer,
   SpotLight,
   MeshBasicMaterial,
-  Mesh, ExtrudeGeometry, DoubleSide
+  Mesh, ExtrudeGeometry, DoubleSide, Box3, Vector3
 } from 'three';
 
 let scene = new Scene();
@@ -18,6 +18,9 @@ let camera: PerspectiveCamera
 let renderer: WebGLRenderer
 let controls: OrbitControls
 let group = new Group();
+
+let baseMesh: Mesh
+let iconMeshGroup: Group
 
 scene.add(group)
 
@@ -32,8 +35,9 @@ export function useCanvasService() {
     light.position.set(20, 20, 20)
     scene.add(light)
 
-    renderer = new WebGLRenderer();
+    renderer = new WebGLRenderer({alpha: true});
     renderer.setSize(element.offsetWidth, element.offsetHeight );
+    renderer.setClearColor( 0x000000, 0 );
     element.appendChild( renderer.domElement );
 
     controls = new OrbitControls(camera, renderer.domElement)
@@ -47,8 +51,7 @@ export function useCanvasService() {
     
     animate()
   }
-
-
+  
   function animate() {
     requestAnimationFrame(animate)
 
@@ -64,10 +67,14 @@ export function useCanvasService() {
     stlLoader.load(
         stlUrl,
         function (geometry) {
-          loading.value = true
+          if (baseMesh) {
+            group.remove(baseMesh)
+          }
           
-          const mesh = new Mesh(geometry, material)
-          group.add(mesh)
+          baseMesh = new Mesh(geometry, material)
+          baseMesh.geometry.center()
+          
+          group.add(baseMesh)
         },
         () => {
           loading.value = false
@@ -90,6 +97,12 @@ export function useCanvasService() {
 
           const paths = data.paths;
 
+          if (iconMeshGroup) {
+            group.remove(iconMeshGroup)
+          }
+
+          iconMeshGroup = new Group();
+
           for ( let i = 0; i < paths.length; i ++ ) {
 
             const path = paths[ i ];
@@ -99,26 +112,37 @@ export function useCanvasService() {
               side: DoubleSide,
               depthWrite: false
             } );
-
+            
             const shapes = SVGLoader.createShapes( path );
-
+            
             for ( let j = 0; j < shapes.length; j ++ ) {
 
               const shape = shapes[ j ];
               const geometry = new ExtrudeGeometry( shape, {
                 steps: 2,
-                depth: 16,
-              } );
+                depth: 4,
+              });
+
               const mesh = new Mesh( geometry, material );
-              group.add( mesh );
 
-
+              iconMeshGroup.add( mesh );
             }
 
+            const baseMeshBoundingBox = new Box3().setFromObject(baseMesh);
+            const baseMeshBoundingBoxSize = baseMeshBoundingBox.getSize(new Vector3());
+
+            const iconBoundingBox = new Box3().setFromObject(iconMeshGroup);
+            const iconBoundingBoxSize = iconBoundingBox.getSize(new Vector3());
+            
+            const center = iconBoundingBox.getCenter(new Vector3());
+            const scaleX = baseMeshBoundingBoxSize.x / iconBoundingBoxSize.x;
+            const scaleY = baseMeshBoundingBoxSize.y / iconBoundingBoxSize.y;
+            
+            iconMeshGroup.position.sub(center);
+            iconMeshGroup.scale.set(scaleX, scaleY,1);
+
+            group.add( iconMeshGroup );
           }
-
-          scene.add( group );
-
         },
         // called when loading is in progresses
          ( xhr: any )=> {

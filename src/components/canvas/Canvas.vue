@@ -28,7 +28,7 @@ onMounted(() => {
 watch(() => props.configuration, (value) => {
   setBaseModel(value.modelUrl)
   setIconSvg(value.svg)
-})
+},{deep: true})
 </script>
 
 <style lang="scss" scoped>
