@@ -1,5 +1,4 @@
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
-import {ref} from "vue";
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader'
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
 import { STLExporter } from 'three/examples/jsm/exporters/STLExporter';
@@ -8,9 +7,14 @@ import {
   Scene,
   PerspectiveCamera,
   WebGLRenderer,
-  SpotLight,
-  MeshBasicMaterial,
-  Mesh, ExtrudeGeometry, DoubleSide, Box3, Vector3
+  Mesh,
+  ExtrudeGeometry,
+  Box3,
+  Vector3,
+  PointLight,
+  AmbientLight,
+  PointLightHelper,
+  GridHelper, MeshStandardMaterial, Object3D
 } from 'three';
 
 let scene = new Scene();
@@ -25,15 +29,18 @@ let iconMeshGroup: Group
 scene.add(group)
 
 export function useCanvasService() {
-  const loading = ref(false)
-
   function init(element: HTMLElement) {
     camera = new PerspectiveCamera(75, element.offsetWidth / element.offsetHeight, 0.1, 1000)
-    camera.position.z = 3
 
-    const light = new SpotLight()
-    light.position.set(20, 20, 20)
-    scene.add(light)
+    const pointLight = new PointLight(0xffffff)
+    pointLight.position.set (5,5,5)
+
+    const ambientLight = new AmbientLight(0xffffff);
+    scene.add(pointLight, ambientLight)
+
+    const lightHelper = new PointLightHelper(pointLight)
+    const gridHelper = new GridHelper(200, 50);
+    scene.add(lightHelper, gridHelper)
 
     renderer = new WebGLRenderer({alpha: true});
     renderer.setSize(element.offsetWidth, element.offsetHeight );
@@ -59,9 +66,39 @@ export function useCanvasService() {
 
     renderer.render(scene, camera)
   }
+
+  /**
+   * Retrieves the size of a given Object3D.
+   *
+   * @param {Object3D} object - The Object3D instance to get the size from.
+   * @return {Vector3} - The size of the Object3D.
+   */
+  function getSize(object: Object3D){
+    const meshABoundingBox = new Box3().setFromObject(object);
+    
+    return meshABoundingBox.getSize(new Vector3());
+  }
+
+  /**
+   * Scales objectB to have the same size as objectA.
+   *
+   * @param {Object3D} objectA - The first object to compare size with.
+   * @param {Object3D} objectB - The object to be scaled.
+   */
+  function scaleEqually(objectA: Object3D, objectB: Object3D)  {
+    const meshASize = getSize(objectA)
+    const meshBSize = getSize(objectB)
+
+    const meshAMaxDimension = Math.max(meshASize.x, meshASize.y, meshASize.z);
+    const meshBMaxDimension = Math.max(meshBSize.x, meshBSize.y, meshBSize.z);
+
+    const scale = meshAMaxDimension / meshBMaxDimension;
+
+    objectB.scale.set(scale, scale, scale);
+  }
   
   function setBaseModel(stlUrl: string){
-    const material = new MeshBasicMaterial( { color: 0x00ff00 } );
+    const material = new MeshStandardMaterial( { color: 0x111111 } );
     const stlLoader = new STLLoader()
     
     stlLoader.load(
@@ -73,26 +110,30 @@ export function useCanvasService() {
           
           baseMesh = new Mesh(geometry, material)
           baseMesh.geometry.center()
+
+          // Move the object z axis to the 0 z axis of the scene
+          const size = getSize(baseMesh)
+          baseMesh.translateZ(size.z / 2)
           
           group.add(baseMesh)
-        },
-        () => {
-          loading.value = false
-        },
-        (error) => {
-          throw error
+          
+          // Set camera position
+          const baseMeshSize = getSize(baseMesh)
+          const baseMeshMaxDimension = Math.max(baseMeshSize.x, baseMeshSize.y, baseMeshSize.z);
+
+          camera.position.setX(baseMeshMaxDimension / 2)
+          camera.position.setY(baseMeshMaxDimension / 2)
+          camera.position.setZ(baseMeshMaxDimension)
         }
     )
   }
   
   function setIconSvg(svgUrl: string) {
-    const loader = new SVGLoader();
-
-// load a SVG resource
-    loader.load(
-        // resource URL
+    const svgLoader = new SVGLoader();
+    const material = new MeshStandardMaterial( {color: 0xffffff} );
+    
+    svgLoader.load(
         svgUrl,
-        // called when the resource is loaded
         function ( data : any) {
 
           const paths = data.paths;
@@ -106,12 +147,6 @@ export function useCanvasService() {
           for ( let i = 0; i < paths.length; i ++ ) {
 
             const path = paths[ i ];
-
-            const material = new MeshBasicMaterial( {
-              color: '#550000',
-              side: DoubleSide,
-              depthWrite: false
-            } );
             
             const shapes = SVGLoader.createShapes( path );
             
@@ -120,57 +155,36 @@ export function useCanvasService() {
               const shape = shapes[ j ];
               const geometry = new ExtrudeGeometry( shape, {
                 steps: 2,
-                depth: 4,
+                depth: 10,
               });
 
               const mesh = new Mesh( geometry, material );
 
               iconMeshGroup.add( mesh );
             }
-
-            const baseMeshBoundingBox = new Box3().setFromObject(baseMesh);
-            const baseMeshBoundingBoxSize = baseMeshBoundingBox.getSize(new Vector3());
-
-            const iconBoundingBox = new Box3().setFromObject(iconMeshGroup);
-            const iconBoundingBoxSize = iconBoundingBox.getSize(new Vector3());
             
-            const center = iconBoundingBox.getCenter(new Vector3());
-            const scaleX = baseMeshBoundingBoxSize.x / iconBoundingBoxSize.x;
-            const scaleY = baseMeshBoundingBoxSize.y / iconBoundingBoxSize.y;
-            
-            iconMeshGroup.position.sub(center);
-            iconMeshGroup.scale.set(scaleX, scaleY,1);
+            scaleEqually(baseMesh, iconMeshGroup)
 
+            // Center svg in center of scene
+            const size = getSize(iconMeshGroup)
+            iconMeshGroup.translateX(size.x / 2 * -1)
+            iconMeshGroup.translateY(size.y / 2 * -1)
+
+            // Move the object z axis to the 0 z axis of the scene
+            iconMeshGroup.translateZ(size.z * -1)
+            
             group.add( iconMeshGroup );
           }
-        },
-        // called when loading is in progresses
-         ( xhr: any )=> {
-
-          console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-        },
-        // called when loading has errors
-         ( error ) => {
-
-          console.log( error );
-
         }
     );
   }
   
   function exportStl() {
-    // Instantiate an exporter
     const exporter = new STLExporter();
-
-    // Configure export options
     const options = { binary: true }
-
-    // Parse the input and generate the STL encoded output
     const result = exporter.parse( group, options );
 
     return new Blob( [result], { type : 'text/plain' } );
-
   }
   
   return {init, setBaseModel, setIconSvg, exportStl}
