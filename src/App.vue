@@ -11,13 +11,14 @@
     </v-app-bar>
 
     <v-main>
-      <!--  -->
+      <Viewer/>
     </v-main>
   </v-app>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import Viewer from "@/components/Viewer.vue";
 
 const drawer = ref(null)
 </script>

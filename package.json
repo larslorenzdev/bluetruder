@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "three": "^0.156.0",
     "vue": "^3.3.4",
     "vuetify": "^3.3.15"
   },
