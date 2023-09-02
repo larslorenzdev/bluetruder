@@ -8,9 +8,9 @@ export default defineConfig({
       vue()
   ],
   resolve: {
-    alias: {
-      '@/': resolve(__dirname, 'src')
-    },
+    alias: [
+      { find: '@', replacement: resolve(__dirname, 'src') },
+    ],
   },
   css: {
     postcss: {
