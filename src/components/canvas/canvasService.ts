@@ -191,11 +191,11 @@ export function useCanvasService() {
             iconMeshGroup.translateX((size.x / 2 * -1) + activeConfiguration.iconOffsetX)
             iconMeshGroup.translateY((size.y / 2 * -1) + activeConfiguration.iconOffsetY)
 
-            // Move the object z axis to the 0 z axis of the scene
-            iconMeshGroup.translateZ(size.z * -1)
-            
             iconMeshGroup.rotateX(MathUtils.degToRad(180))
-
+            
+            // Move the object z axis to the 0 z axis of the scene
+            iconMeshGroup.translateZ(size.z * -2)
+            
             group.add( iconMeshGroup );
           }
         }

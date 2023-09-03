@@ -45,7 +45,7 @@ const models: Model[] = [{
   configuration: {
     modelUrl: hookModelUrl,
     rotationX: 90,
-    rotationY: 0,
+    rotationY: 180,
     rotationZ: 180,
     iconOffsetX: 0,
     iconOffsetY: 0,
