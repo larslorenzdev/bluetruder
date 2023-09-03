@@ -5,7 +5,6 @@ import { STLExporter } from 'three/examples/jsm/exporters/STLExporter';
 import {
   Group,
   Scene,
-  PerspectiveCamera,
   WebGLRenderer,
   Mesh,
   ExtrudeGeometry,
@@ -14,6 +13,8 @@ import {
   PointLight,
   AmbientLight,
   PointLightHelper,
+    OrthographicCamera,
+  Camera,
   GridHelper, MeshStandardMaterial, Object3D, MathUtils
 } from 'three';
 
@@ -30,7 +31,7 @@ export type CanvasConfiguration = {
 
 let activeConfiguration: CanvasConfiguration
 let scene = new Scene();
-let camera: PerspectiveCamera
+let camera: Camera
 let renderer: WebGLRenderer
 let controls: OrbitControls
 let group = new Group();
@@ -42,8 +43,12 @@ scene.add(group)
 
 export function useCanvasService() {
   function init(element: HTMLElement) {
-    camera = new PerspectiveCamera(75, element.offsetWidth / element.offsetHeight, 0.1, 1000)
-
+    const factor = 40
+    camera = new OrthographicCamera(element.offsetWidth / - factor, element.offsetWidth / factor, element.offsetHeight / factor, element.offsetHeight / - factor,-1000,1000)
+    camera.position.setX(1)
+    camera.position.setY(2)
+    camera.position.setZ(2)
+    
     const pointLight = new PointLight(0xffffff)
     pointLight.position.set (5,5,5)
 
@@ -63,8 +68,8 @@ export function useCanvasService() {
     controls.enableDamping = true
 
     window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight
-      camera.updateProjectionMatrix()
+      // camera.aspect = window.innerWidth / window.innerHeight
+      // camera.updateProjectionMatrix()
       renderer.setSize(window.innerWidth, window.innerHeight)
     }, false)
     
@@ -135,16 +140,6 @@ export function useCanvasService() {
           
           group.add(baseMesh)
           
-          // Set camera position
-          if (!activeConfiguration) {
-            const baseMeshSize = getSize(baseMesh)
-            const baseMeshMaxDimension = Math.max(baseMeshSize.x, baseMeshSize.y, baseMeshSize.z);
-
-            camera.position.setX(baseMeshMaxDimension / 2)
-            camera.position.setY(baseMeshMaxDimension / 2)
-            camera.position.setZ(baseMeshMaxDimension)
-          }
-
           activeConfiguration = configuration
         }
     )
