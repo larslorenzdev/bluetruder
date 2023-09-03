@@ -17,6 +17,15 @@ import {
   GridHelper, MeshStandardMaterial, Object3D
 } from 'three';
 
+export type CanvasConfiguration = {
+  modelUrl: string
+  scale: number
+  offsetX: number
+  offsetY: number
+  rotation: number
+}
+
+let configuration: CanvasConfiguration
 let scene = new Scene();
 let camera: PerspectiveCamera
 let renderer: WebGLRenderer
@@ -97,12 +106,12 @@ export function useCanvasService() {
     objectB.scale.set(scale, scale, scale);
   }
   
-  function setBaseModel(stlUrl: string){
+  function setConfiguration(configuration: CanvasConfiguration){
     const material = new MeshStandardMaterial( { color: 0x111111 } );
     const stlLoader = new STLLoader()
     
     stlLoader.load(
-        stlUrl,
+        configuration.modelUrl,
         function (geometry) {
           if (baseMesh) {
             group.remove(baseMesh)
@@ -187,5 +196,5 @@ export function useCanvasService() {
     return new Blob( [result], { type : 'text/plain' } );
   }
   
-  return {init, setBaseModel, setIconSvg, exportStl}
+  return {init, setConfiguration, setIconSvg, exportStl}
 }
