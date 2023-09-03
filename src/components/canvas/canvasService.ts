@@ -14,18 +14,21 @@ import {
   PointLight,
   AmbientLight,
   PointLightHelper,
-  GridHelper, MeshStandardMaterial, Object3D
+  GridHelper, MeshStandardMaterial, Object3D, MathUtils
 } from 'three';
 
 export type CanvasConfiguration = {
   modelUrl: string
-  scale: number
-  offsetX: number
-  offsetY: number
-  rotation: number
+  rotationX: number
+  rotationY: number
+  rotationZ: number
+  iconOffsetX: number
+  iconOffsetY: number
+  iconScale: number
+  iconDepth: number
 }
 
-let configuration: CanvasConfiguration
+let activeConfiguration: CanvasConfiguration
 let scene = new Scene();
 let camera: PerspectiveCamera
 let renderer: WebGLRenderer
@@ -94,16 +97,17 @@ export function useCanvasService() {
    * @param {Object3D} objectA - The first object to compare size with.
    * @param {Object3D} objectB - The object to be scaled.
    */
-  function scaleEqually(objectA: Object3D, objectB: Object3D)  {
+  function scaleEqually(objectA: Object3D, objectB: Object3D, offset = 1)  {
     const meshASize = getSize(objectA)
     const meshBSize = getSize(objectB)
 
     const meshAMaxDimension = Math.max(meshASize.x, meshASize.y, meshASize.z);
     const meshBMaxDimension = Math.max(meshBSize.x, meshBSize.y, meshBSize.z);
 
-    const scale = meshAMaxDimension / meshBMaxDimension;
+    const defaultScale = meshAMaxDimension / meshBMaxDimension;
+    const offsetScale = defaultScale * offset;
 
-    objectB.scale.set(scale, scale, scale);
+    objectB.scale.set(offsetScale, offsetScale, 1);
   }
   
   function setConfiguration(configuration: CanvasConfiguration){
@@ -124,15 +128,24 @@ export function useCanvasService() {
           const size = getSize(baseMesh)
           baseMesh.translateZ(size.z / 2)
           
+          // Apply configuration
+          group.rotateX(MathUtils.degToRad(configuration.rotationX))
+          group.rotateY(MathUtils.degToRad(configuration.rotationY))
+          group.rotateZ(MathUtils.degToRad(configuration.rotationZ))
+          
           group.add(baseMesh)
           
           // Set camera position
-          const baseMeshSize = getSize(baseMesh)
-          const baseMeshMaxDimension = Math.max(baseMeshSize.x, baseMeshSize.y, baseMeshSize.z);
+          if (!activeConfiguration) {
+            const baseMeshSize = getSize(baseMesh)
+            const baseMeshMaxDimension = Math.max(baseMeshSize.x, baseMeshSize.y, baseMeshSize.z);
 
-          camera.position.setX(baseMeshMaxDimension / 2)
-          camera.position.setY(baseMeshMaxDimension / 2)
-          camera.position.setZ(baseMeshMaxDimension)
+            camera.position.setX(baseMeshMaxDimension / 2)
+            camera.position.setY(baseMeshMaxDimension / 2)
+            camera.position.setZ(baseMeshMaxDimension)
+          }
+
+          activeConfiguration = configuration
         }
     )
   }
@@ -163,8 +176,7 @@ export function useCanvasService() {
 
               const shape = shapes[ j ];
               const geometry = new ExtrudeGeometry( shape, {
-                steps: 2,
-                depth: 10,
+                depth: activeConfiguration.iconDepth,
               });
 
               const mesh = new Mesh( geometry, material );
@@ -172,16 +184,18 @@ export function useCanvasService() {
               iconMeshGroup.add( mesh );
             }
             
-            scaleEqually(baseMesh, iconMeshGroup)
+            scaleEqually(baseMesh, iconMeshGroup, activeConfiguration.iconScale)
 
             // Center svg in center of scene
             const size = getSize(iconMeshGroup)
-            iconMeshGroup.translateX(size.x / 2 * -1)
-            iconMeshGroup.translateY(size.y / 2 * -1)
+            iconMeshGroup.translateX((size.x / 2 * -1) + activeConfiguration.iconOffsetX)
+            iconMeshGroup.translateY((size.y / 2 * -1) + activeConfiguration.iconOffsetY)
 
             // Move the object z axis to the 0 z axis of the scene
             iconMeshGroup.translateZ(size.z * -1)
             
+            iconMeshGroup.rotateX(MathUtils.degToRad(180))
+
             group.add( iconMeshGroup );
           }
         }

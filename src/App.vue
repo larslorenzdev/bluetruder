@@ -9,8 +9,8 @@
               label="Model"
               :items="models"
               item-title="label"
-              item-value="configuration"
-              v-model="configuration"
+              v-model="model"
+              return-object
           />
           <v-file-input @change="onImageSelect" label="Icon" accept=".svg"/>
         </v-form>
@@ -26,11 +26,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import {computed, ref} from 'vue'
 import {type CanvasConfiguration, useCanvasService} from "@/components/canvas/canvasService";
 import Canvas from "@/components/canvas/Canvas.vue";
 import {downloadBlob} from '@/utils'
-import defaultModelUrl from "@/assets/model.stl?url";
+import hookModelUrl from "@/assets/hook_simple.stl?url";
+// import defaultModelUrl from "@/assets/model.stl?url";
 import testModelUrl from "@/assets/test.stl?url";
 import defaultSvgUrl from "@/assets/print-solid.svg?url";
 
@@ -39,37 +40,36 @@ type Model = {
   configuration: CanvasConfiguration
 }
 
-const {exportStl} = useCanvasService()
-const configuration = ref<CanvasConfiguration>({
-  modelUrl: defaultModelUrl,
-  offsetX:0,
-  offsetY: 0,
-  rotation: 0,
-  scale: 0
-})
-const svgUrl = ref(defaultSvgUrl)
-
 const models: Model[] = [{
   label: 'Default Model',
   configuration: {
-    modelUrl: defaultModelUrl,
-    offsetX:0,
-    offsetY: 0,
-    rotation: 0,
-    scale: 0
+    modelUrl: hookModelUrl,
+    rotationX: 90,
+    rotationY: 0,
+    rotationZ: 180,
+    iconOffsetX: 0,
+    iconOffsetY: 0,
+    iconScale: 0.3,
+    iconDepth: 0.4
   }
-},
-  {
+}, {
   label: 'Test Model',
-    configuration: 
-  {
+  configuration: {
     modelUrl: testModelUrl,
-    offsetX:0,
-    offsetY: 0,
-    rotation: 0,
-    scale: 0
+    rotationX: 90,
+    rotationY: 90,
+    rotationZ: 90,
+    iconOffsetX: 0,
+    iconOffsetY: 0,
+    iconScale: 1,
+    iconDepth: 0.4
   }
 }]
+
+const {exportStl} = useCanvasService()
+const model = ref<Model>(models[0])
+const svgUrl = ref(defaultSvgUrl)
+const configuration = computed(() => model.value.configuration)
 
 function onImageSelect(event: InputEvent) {
   const element = event.target as HTMLInputElement
