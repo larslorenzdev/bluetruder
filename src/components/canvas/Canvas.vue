@@ -4,30 +4,35 @@
 
 <script setup lang="ts">
 import {onMounted, ref, watch} from "vue";
-import {CanvasConfiguration, useCanvasService} from "@/components/canvas/canvasService.ts";
+import {Configuration, useCanvasService} from "@/components/canvas/canvasService.ts";
+
+export type ModelConfiguration = {
+  url: string
+  configuration: Configuration
+}
 
 type Props = {
-  configuration: CanvasConfiguration
-  svgUrl: string
+  base: ModelConfiguration
+  icon: ModelConfiguration
 }
 
 const props = defineProps<Props>()
-const {init, setConfiguration, setIconSvg} = useCanvasService()
+const {init, setBaseModel, setIconModel} = useCanvasService(false)
 const container = ref()
 
-onMounted(() => {
+onMounted(async () => {
   init(container.value)
-  setConfiguration(props.configuration)
-  setIconSvg(props.svgUrl)
+  await setBaseModel(props.base.url, props.base.configuration)
+  await setIconModel(props.icon.url, props.icon.configuration)
 })
 
-watch(() => props.configuration, (value) => {
-  setConfiguration(value)
-})
+watch(() => props.base, async (value) => {
+  await setBaseModel(value.url, value.configuration)
+}, {deep: true})
 
-watch(() => props.svgUrl, (value) => {
-  setIconSvg(value)
-})
+watch(() => props.icon, async (value) => {
+  await setIconModel(value.url, value.configuration)
+}, {deep: true})
 </script>
 
 <style lang="scss" scoped>

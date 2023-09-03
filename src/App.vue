@@ -7,10 +7,10 @@
         <v-form>
           <v-select
               label="Model"
-              :items="models"
+              :items="baseModelConfigurations"
               item-title="label"
-              v-model="model"
-              return-object
+              item-value="model"
+              v-model="baseModelConfiguration"
           />
           <v-file-input @change="onImageSelect" label="Icon" accept=".svg"/>
         </v-form>
@@ -20,56 +20,44 @@
     </v-navigation-drawer>
     
     <v-main>
-      <Canvas :configuration="configuration" :svg-url="svgUrl"/>
+      <Canvas :base="baseModelConfiguration" :icon="iconModelConfiguration" />
     </v-main>
   </v-app>
 </template>
 
 <script setup lang="ts">
-import {computed, ref} from 'vue'
-import {type CanvasConfiguration, useCanvasService} from "@/components/canvas/canvasService";
-import Canvas from "@/components/canvas/Canvas.vue";
+import { ref} from 'vue'
+import { useCanvasService} from "@/components/canvas/canvasService";
+import Canvas, {type ModelConfiguration} from "@/components/canvas/Canvas.vue";
 import {downloadBlob} from '@/utils'
 import hookModelUrl from "@/assets/hook_simple.stl?url";
-// import defaultModelUrl from "@/assets/model.stl?url";
-import testModelUrl from "@/assets/test.stl?url";
 import defaultSvgUrl from "@/assets/print-solid.svg?url";
 
-type Model = {
+type ModelOption = {
   label: string
-  configuration: CanvasConfiguration
+  model: ModelConfiguration
 }
 
-const models: Model[] = [{
+const baseModelConfigurations: ModelOption[] = [{
   label: 'Default Model',
-  configuration: {
-    modelUrl: hookModelUrl,
-    rotationX: 90,
-    rotationY: 180,
-    rotationZ: 180,
-    iconOffsetX: 0,
-    iconOffsetY: 0,
-    iconScale: 0.3,
-    iconDepth: 0.4
-  }
-}, {
-  label: 'Test Model',
-  configuration: {
-    modelUrl: testModelUrl,
-    rotationX: 90,
-    rotationY: 90,
-    rotationZ: 90,
-    iconOffsetX: 0,
-    iconOffsetY: 0,
-    iconScale: 1,
-    iconDepth: 0.4
+  model: {
+    url: hookModelUrl,
+    configuration: {
+      rotationX: -90,
+    }
   }
 }]
 
 const {exportStl} = useCanvasService()
-const model = ref<Model>(models[0])
-const svgUrl = ref(defaultSvgUrl)
-const configuration = computed(() => model.value.configuration)
+const baseModelConfiguration = ref<ModelConfiguration>(baseModelConfigurations[0].model)
+const iconModelConfiguration = ref<ModelConfiguration>({
+  url: defaultSvgUrl,
+  configuration: {
+    rotationX: 90,
+    offsetZ: 15,
+    scale: 0.3
+  }
+})
 
 function onImageSelect(event: InputEvent) {
   const element = event.target as HTMLInputElement
@@ -79,7 +67,7 @@ function onImageSelect(event: InputEvent) {
     const reader = new FileReader();
     
     reader.addEventListener('load', () => {
-      svgUrl.value = reader.result as string
+      iconModelConfiguration.value.url = reader.result as string
     });
 
     reader.readAsDataURL(file);

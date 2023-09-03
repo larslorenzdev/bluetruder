@@ -8,202 +8,236 @@ import {
   WebGLRenderer,
   Mesh,
   ExtrudeGeometry,
-  Box3,
-  Vector3,
   PointLight,
   AmbientLight,
   PointLightHelper,
-    OrthographicCamera,
-  Camera,
-  GridHelper, MeshStandardMaterial, Object3D, MathUtils
+  OrthographicCamera,
+  GridHelper,
+  MeshStandardMaterial,
+  Object3D,
+  MathUtils,
+  Material,
+  BoxHelper, PlaneGeometry, MeshBasicMaterial, DoubleSide
 } from 'three';
+import {applyScale2d, getSize, moveToCenter} from "@/components/canvas/utils.ts";
 
-export type CanvasConfiguration = {
-  modelUrl: string
-  rotationX: number
-  rotationY: number
-  rotationZ: number
-  iconOffsetX: number
-  iconOffsetY: number
-  iconScale: number
-  iconDepth: number
+export type Configuration = {
+  rotationX?: number
+  rotationY?: number
+  rotationZ?: number
+  offsetX?: number
+  offsetY?: number
+  offsetZ?: number
+  scale?: number
 }
 
-let activeConfiguration: CanvasConfiguration
 let scene = new Scene();
-let camera: Camera
-let renderer: WebGLRenderer
-let controls: OrbitControls
-let group = new Group();
+let baseModel: Object3D
+let iconModel: Object3D
 
-let baseMesh: Mesh
-let iconMeshGroup: Group
-
-scene.add(group)
-
-export function useCanvasService() {
+export function useCanvasService(debug= false) {
   function init(element: HTMLElement) {
     const factor = 40
-    camera = new OrthographicCamera(element.offsetWidth / - factor, element.offsetWidth / factor, element.offsetHeight / factor, element.offsetHeight / - factor,-1000,1000)
+    const camera = new OrthographicCamera(element.offsetWidth / - factor, element.offsetWidth / factor, element.offsetHeight / factor, element.offsetHeight / - factor,-1000,1000)
     camera.position.setX(1)
     camera.position.setY(2)
     camera.position.setZ(2)
     
-    const pointLight = new PointLight(0xffffff)
-    pointLight.position.set (5,5,5)
+    const pointLight = new PointLight(0xffffff, 1000)
+    pointLight.position.set (0,20,0)
+    scene.add(pointLight)
 
     const ambientLight = new AmbientLight(0xffffff);
-    scene.add(pointLight, ambientLight)
-
-    const lightHelper = new PointLightHelper(pointLight)
-    const gridHelper = new GridHelper(200, 50);
-    scene.add(lightHelper, gridHelper)
-
-    renderer = new WebGLRenderer({alpha: true});
+    scene.add(ambientLight)
+    
+    const renderer = new WebGLRenderer({alpha: true});
     renderer.setSize(element.offsetWidth, element.offsetHeight );
     renderer.setClearColor( 0x000000, 0 );
     element.appendChild( renderer.domElement );
 
-    controls = new OrbitControls(camera, renderer.domElement)
+    const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
 
+    const geometry = new PlaneGeometry(250, 250);
+    const material = new MeshBasicMaterial({color: 0xaaaaaa, side: DoubleSide});
+    const plane = new Mesh(geometry, material);
+    plane.rotateX(MathUtils.degToRad(90))
+    plane.position.setY(-0.1)
+    scene.add(plane);
+
+    if (debug) {
+      const lightHelper = new PointLightHelper(pointLight)
+      scene.add(lightHelper)
+
+      const gridHelper = new GridHelper(250, 50);
+      scene.add(gridHelper)
+    }
+    
     window.addEventListener('resize', () => {
-      // camera.aspect = window.innerWidth / window.innerHeight
-      // camera.updateProjectionMatrix()
-      renderer.setSize(window.innerWidth, window.innerHeight)
+      renderer.setSize(element.offsetWidth, element.offsetHeight)
     }, false)
+    
+    const animate = () => {
+      requestAnimationFrame(animate)
+      controls.update()
+      renderer.render(scene, camera)
+    }
     
     animate()
   }
   
-  function animate() {
-    requestAnimationFrame(animate)
-
-    controls.update()
-
-    renderer.render(scene, camera)
-  }
-
-  /**
-   * Retrieves the size of a given Object3D.
-   *
-   * @param {Object3D} object - The Object3D instance to get the size from.
-   * @return {Vector3} - The size of the Object3D.
-   */
-  function getSize(object: Object3D){
-    const meshABoundingBox = new Box3().setFromObject(object);
+  async function setBaseModel(modelUrl: string, configuration: Configuration){
+    if (baseModel) {
+      scene.remove(baseModel)
+    }
     
-    return meshABoundingBox.getSize(new Vector3());
-  }
+    const material = new MeshStandardMaterial( { color: 0x000000 } );
+    const model = await loadStl(modelUrl, material)
 
-  /**
-   * Scales objectB to have the same size as objectA.
-   *
-   * @param {Object3D} objectA - The first object to compare size with.
-   * @param {Object3D} objectB - The object to be scaled.
-   */
-  function scaleEqually(objectA: Object3D, objectB: Object3D, offset = 1)  {
-    const meshASize = getSize(objectA)
-    const meshBSize = getSize(objectB)
+    // Apply scale
+    model.scale.set(configuration.scale ?? 1,configuration.scale?? 1,configuration.scale ?? 1)
+    
+    moveToCenter(model)
+    
+    baseModel = applyConfiguration(model, configuration)
+    
+    // Set flat on surface
+    const size = getSize(baseModel)
+    baseModel.position.setY(size.y / 2)
+    
+    scene.add(baseModel)
 
-    const meshAMaxDimension = Math.max(meshASize.x, meshASize.y, meshASize.z);
-    const meshBMaxDimension = Math.max(meshBSize.x, meshBSize.y, meshBSize.z);
-
-    const defaultScale = meshAMaxDimension / meshBMaxDimension;
-    const offsetScale = defaultScale * offset;
-
-    objectB.scale.set(offsetScale, offsetScale, 1);
+    if(debug) {
+      addBoxHelper(baseModel)
+    }
   }
   
-  function setConfiguration(configuration: CanvasConfiguration){
-    const material = new MeshStandardMaterial( { color: 0x111111 } );
-    const stlLoader = new STLLoader()
+  async function setIconModel(svgUrl: string, configuration: Configuration) {
+    if (iconModel) {
+      scene.remove(iconModel)
+    }
     
-    stlLoader.load(
-        configuration.modelUrl,
-        function (geometry) {
-          if (baseMesh) {
-            group.remove(baseMesh)
-          }
-          
-          baseMesh = new Mesh(geometry, material)
-          baseMesh.geometry.center()
-
-          // Move the object z axis to the 0 z axis of the scene
-          const size = getSize(baseMesh)
-          baseMesh.translateZ(size.z / 2)
-          
-          // Apply configuration
-          group.rotateX(MathUtils.degToRad(configuration.rotationX))
-          group.rotateY(MathUtils.degToRad(configuration.rotationY))
-          group.rotateZ(MathUtils.degToRad(configuration.rotationZ))
-          
-          group.add(baseMesh)
-          
-          activeConfiguration = configuration
-        }
-    )
-  }
-  
-  function setIconSvg(svgUrl: string) {
-    const svgLoader = new SVGLoader();
     const material = new MeshStandardMaterial( {color: 0xffffff} );
+    const model = await loadSvg(svgUrl, material)
+
+    applyScale2d(baseModel, model, configuration.scale)
+    moveToCenter(model)
+    iconModel = applyConfiguration(model, configuration)
+
+    // Set flat on base model
+    const baseModelSize = getSize(baseModel)
+    const iconModelSize = getSize(iconModel)
+    iconModel.position.setY((iconModelSize.y / 2) + baseModelSize.y)
     
-    svgLoader.load(
-        svgUrl,
-        function ( data : any) {
+    scene.add( iconModel );
 
-          const paths = data.paths;
+    if(debug) {
+      addBoxHelper(iconModel)
+    }
+  }
 
-          if (iconMeshGroup) {
-            group.remove(iconMeshGroup)
-          }
+  function applyConfiguration(object: Object3D, configuration: Configuration) {
+    const group = new Group()
+    group.add(object)
+    
+    group.rotateX(MathUtils.degToRad(configuration.rotationX ?? 0))
+    group.rotateY(MathUtils.degToRad(configuration.rotationY ?? 0))
+    group.rotateZ(MathUtils.degToRad(configuration.rotationZ ?? 0))
 
-          iconMeshGroup = new Group();
+    group.position.setX(configuration.offsetX ?? 0)
+    group.position.setY(configuration.offsetY ?? 0)
+    group.position.setZ(configuration.offsetZ ?? 0)
+    
+    return group
+  }
+  
+  function addBoxHelper(object: Object3D){
+      object.children.forEach((object) => {
+        if (object instanceof Group) {
+          const box = new BoxHelper( baseModel, 0xffff00 ); // Yellow
 
-          for ( let i = 0; i < paths.length; i ++ ) {
-
-            const path = paths[ i ];
-            
-            const shapes = SVGLoader.createShapes( path );
-            
-            for ( let j = 0; j < shapes.length; j ++ ) {
-
-              const shape = shapes[ j ];
-              const geometry = new ExtrudeGeometry( shape, {
-                depth: activeConfiguration.iconDepth,
-              });
-
-              const mesh = new Mesh( geometry, material );
-
-              iconMeshGroup.add( mesh );
-            }
-            
-            scaleEqually(baseMesh, iconMeshGroup, activeConfiguration.iconScale)
-
-            // Center svg in center of scene
-            const size = getSize(iconMeshGroup)
-            iconMeshGroup.translateX((size.x / 2 * -1) + activeConfiguration.iconOffsetX)
-            iconMeshGroup.translateY((size.y / 2 * -1) + activeConfiguration.iconOffsetY)
-
-            iconMeshGroup.rotateX(MathUtils.degToRad(180))
-            
-            // Move the object z axis to the 0 z axis of the scene
-            iconMeshGroup.translateZ(size.z * -2)
-            
-            group.add( iconMeshGroup );
-          }
+          object.add(box)
         }
-    );
+
+        if (object instanceof Mesh) {
+          const box = new BoxHelper( baseModel, 0xff00ff ); // Purple
+
+          object.add(box)
+        }
+        
+        if (object.children.length > 0) {
+          addBoxHelper(object)
+        }
+      })
+
   }
   
   function exportStl() {
     const exporter = new STLExporter();
     const options = { binary: true }
+    
+    const group = new Group()
+    group.add(baseModel.clone(), iconModel.clone())
+    
     const result = exporter.parse( group, options );
 
     return new Blob( [result], { type : 'text/plain' } );
   }
+
+  async function loadStl(stlUrl: string, material: Material): Promise<Group> {
+    const svgLoader = new STLLoader();
+
+    return new Promise((resolve, reject) => {
+      svgLoader.load(
+          stlUrl,
+           (geometry) => {
+            const group = new Group()
+            const mesh = new Mesh(geometry, material)
+             
+             group.add(mesh)
+             
+             resolve(group)
+          },
+          undefined,
+          (error) => {
+            reject(error)
+          }
+      );
+    })
+  }
   
-  return {init, setConfiguration, setIconSvg, exportStl}
+  async function loadSvg(svgUrl: string, material: Material): Promise<Group> {
+    const svgLoader = new SVGLoader();
+
+    return new Promise((resolve, reject) => {
+      svgLoader.load(
+          svgUrl,
+           ( data)=> {
+            const paths = data.paths;
+            const group = new Group();
+
+            for ( let i = 0; i < paths.length; i ++ ) {
+              const path = paths[ i ];
+              const shapes = SVGLoader.createShapes( path );
+
+              for ( let j = 0; j < shapes.length; j ++ ) {
+                const shape = shapes[ j ];
+                const geometry = new ExtrudeGeometry( shape, {depth: 0.4});
+                const mesh = new Mesh( geometry, material );
+
+                group.add( mesh );
+              }
+            }
+             
+            resolve(group)
+          },
+          undefined,
+          (error) => {
+            reject(error)
+          }
+      );
+    })
+  }
+  
+  return {init, setBaseModel, setIconModel, exportStl}
 }
