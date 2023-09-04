@@ -16,8 +16,8 @@ export function applyScale2d(objectA: Object3D, objectB: Object3D, offset = 1)  
   const meshASize = getSize(objectA)
   const meshBSize = getSize(objectB)
 
-  const meshAMaxDimension = Math.max(meshASize.x, meshASize.y, meshASize.z);
-  const meshBMaxDimension = Math.max(meshBSize.x, meshBSize.y, meshBSize.z);
+  const meshAMaxDimension = Math.min(meshASize.x, meshASize.z);
+  const meshBMaxDimension = Math.max(meshBSize.x, meshBSize.z);
 
   const defaultScale = meshAMaxDimension / meshBMaxDimension;
   const offsetScale = defaultScale * offset;

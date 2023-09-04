@@ -55,7 +55,7 @@ const iconModelConfiguration = ref<ModelConfiguration>({
   configuration: {
     rotationX: 90,
     offsetZ: 15,
-    scale: 0.3
+    scale: 0.8
   }
 })
 
