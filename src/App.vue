@@ -1,10 +1,14 @@
 <template>
   <v-app>
     <v-navigation-drawer>
-      <h1>Configuration</h1>
-
-      <v-container class="d-flex flex-column justify-space-between">
-        <v-form>
+      <v-container class="d-flex flex-column h-100">
+        <div class="flex-grow-1">
+          <h1 class="text-center ">Configuration</h1>
+          <p class="mb-5">
+            <small>
+              This is a tool to generate a <code>STL</code> file for 3d printing to label cables.
+            </small>
+          </p>
           <v-select
               label="Model"
               :items="baseModelConfigurations"
@@ -12,9 +16,10 @@
               item-value="model"
               v-model="baseModelConfiguration"
           />
-          <v-file-input @change="onImageSelect" label="Icon" accept=".svg"/>
-        </v-form>
-
+          <div class="dropzone" :class="{'dropzone--active': isOverDropZone}" ref="dropZoneRef" @click="onDropzoneClick">
+            <span>Click or drop SVG file here</span>
+          </div>
+        </div>
         <v-btn @click="onDownloadClick">Download</v-btn>
       </v-container>
     </v-navigation-drawer>
@@ -22,6 +27,23 @@
     <v-main>
       <Canvas :base="baseModelConfiguration" :icon="iconModelConfiguration" />
     </v-main>
+
+    <v-snackbar
+        v-model="snackbar"
+        multi-line
+    >
+      File type is not supported
+
+      <template v-slot:actions>
+        <v-btn
+            color="red"
+            variant="text"
+            @click="snackbar = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-app>
 </template>
 
@@ -29,9 +51,10 @@
 import { ref} from 'vue'
 import { useCanvasService} from "@/components/canvas/canvasService";
 import Canvas, {type ModelConfiguration} from "@/components/canvas/Canvas.vue";
-import {downloadBlob} from '@/utils'
+import {downloadBlob, openFile} from '@/utils'
 import hookModelUrl from "@/assets/hook_simple.stl?url";
 import defaultSvgUrl from "@/assets/print-solid.svg?url";
+import {useDropZone} from "@vueuse/core";
 
 type ModelOption = {
   label: string
@@ -39,7 +62,7 @@ type ModelOption = {
 }
 
 const baseModelConfigurations: ModelOption[] = [{
-  label: 'Default Model',
+  label: 'Hook',
   model: {
     url: hookModelUrl,
     configuration: {
@@ -48,7 +71,10 @@ const baseModelConfigurations: ModelOption[] = [{
   }
 }]
 
+const snackbar = ref()
+const dropZoneRef = ref()
 const {exportStl} = useCanvasService()
+const { isOverDropZone } = useDropZone(dropZoneRef, loadFile)
 const baseModelConfiguration = ref<ModelConfiguration>(baseModelConfigurations[0].model)
 const iconModelConfiguration = ref<ModelConfiguration>({
   url: defaultSvgUrl,
@@ -59,18 +85,29 @@ const iconModelConfiguration = ref<ModelConfiguration>({
   }
 })
 
-function onImageSelect(event: InputEvent) {
-  const element = event.target as HTMLInputElement
-  
-  if (element.files && element.files.length > 0) {
-    const file = element.files[0];
-    const reader = new FileReader();
-    
-    reader.addEventListener('load', () => {
-      iconModelConfiguration.value.url = reader.result as string
-    });
+function loadFile(files: File[] | null) {
+  if (files && files.length > 0) {
+    const file = files[0];
 
-    reader.readAsDataURL(file);
+    if (file.type === 'image/svg+xml'){
+      const reader = new FileReader();
+
+      reader.addEventListener('load', () => {
+        iconModelConfiguration.value.url = reader.result as string
+      });
+
+      reader.readAsDataURL(file);
+    } else {
+      snackbar.value = true
+    }
+  }
+}
+
+async function onDropzoneClick () {
+  const files = await openFile('.svg')
+
+  if(files) {
+    loadFile([...files])
   }
 }
 
@@ -78,3 +115,22 @@ function onDownloadClick(){
   downloadBlob(exportStl(), 'model.stl')
 }
 </script>
+
+<style lang="scss" scoped>
+.dropzone {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 10rem;
+  border-style: solid;
+  background-color: #F6F6F6;
+  border-width: 0 0 1px 0;
+  border-color: #A5A5A5;
+  
+  &:hover, &--active {
+    background-color: #EDEDED;
+    border-color: #3A3A3A;
+  }
+}
+</style>
