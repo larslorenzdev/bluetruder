@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer>
+    <Menu>
       <v-container class="d-flex flex-column h-100">
         <div class="flex-grow-1">
           <h1 class="text-center ">Configuration</h1>
@@ -22,7 +22,7 @@
         </div>
         <v-btn @click="onDownloadClick">Download</v-btn>
       </v-container>
-    </v-navigation-drawer>
+    </Menu>
     
     <v-main>
       <Canvas :base="baseModelConfiguration" :icon="iconModelConfiguration" />
@@ -55,6 +55,7 @@ import {downloadBlob, openFile} from '@/utils'
 import hookModelUrl from "@/assets/hook_simple.stl?url";
 import defaultSvgUrl from "@/assets/print-solid.svg?url";
 import {useDropZone} from "@vueuse/core";
+import Menu from "@/components/Menu.vue";
 
 type ModelOption = {
   label: string
@@ -124,13 +125,14 @@ function onDownloadClick(){
   width: 100%;
   height: 10rem;
   border-style: solid;
-  background-color: #F6F6F6;
+  background-color: rgba(255, 255, 255, 0.05);
   border-width: 0 0 1px 0;
-  border-color: #A5A5A5;
+  border-color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
   
   &:hover, &--active {
-    background-color: #EDEDED;
-    border-color: #3A3A3A;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 1);
   }
 }
 </style>
