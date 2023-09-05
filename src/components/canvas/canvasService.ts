@@ -38,16 +38,20 @@ let iconModel: Object3D
 export function useCanvasService(debug= false) {
   function init(element: HTMLElement) {
     const factor = 40
-    const camera = new OrthographicCamera(element.offsetWidth / - factor, element.offsetWidth / factor, element.offsetHeight / factor, element.offsetHeight / - factor,-1000,1000)
+    const camera = new OrthographicCamera(-element.offsetWidth / factor, element.offsetWidth / factor, element.offsetHeight / factor, -element.offsetHeight / factor,-1000,1000)
     camera.position.setX(1)
     camera.position.setY(2)
     camera.position.setZ(2)
     
-    const pointLight = new PointLight(0xffffff, 1000)
-    pointLight.position.set (0,20,0)
+    const pointLight = new PointLight(0xffffff, 10000)
+    pointLight.position.set (0,50,0)
     scene.add(pointLight)
 
-    const ambientLight = new AmbientLight(0xffffff);
+    const pointLight2 = new PointLight(0xffffff, 10000)
+    pointLight2.position.set (20,20,-20)
+    scene.add(pointLight2)
+
+    const ambientLight = new AmbientLight(0xffffff, 1);
     scene.add(ambientLight)
     
     const renderer = new WebGLRenderer({alpha: true});
@@ -57,12 +61,24 @@ export function useCanvasService(debug= false) {
 
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
+    controls.maxZoom = 1
+    controls.minZoom = 0.2
+    controls.maxPolarAngle = MathUtils.degToRad(75)
+    controls.minPolarAngle = MathUtils.degToRad(0)
+    controls.enablePan = false
 
     const geometry = new PlaneGeometry(250, 250);
-    const material = new MeshBasicMaterial({color: 0xaaaaaa, side: DoubleSide});
+    const material = new MeshBasicMaterial({color: 0x222222, side: DoubleSide});
     const plane = new Mesh(geometry, material);
     plane.rotateX(MathUtils.degToRad(90))
     plane.position.setY(-0.1)
+    
+    const gridHelper = new GridHelper(250, 25, 0xffffff, 0xffffff);
+    gridHelper.rotateX(MathUtils.degToRad(90))
+    gridHelper.material.transparent = true;
+    gridHelper.material.opacity = 0.2;
+    plane.add(gridHelper)
+    
     scene.add(plane);
 
     if (debug) {

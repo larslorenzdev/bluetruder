@@ -1,0 +1,15 @@
+@import "assets/font/inter.css";
+
+:root {
+  --background-color: #666666;
+}
+
+body {
+  font-family: "Inter", system-ui;
+  background-color: var(--background-color);
+  margin: 0;
+}
+
+h1 {
+  margin: 0;
+}

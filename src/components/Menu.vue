@@ -1,6 +1,8 @@
 <template>
-  <aside class="menu">
-    <slot/>
+  <aside class="container">
+    <div class="menu">
+      <slot />
+    </div> 
   </aside>
 </template>
 
@@ -8,17 +10,28 @@
 
 </script>
 
-<style scoped>
-.menu {
-  border-radius: 2rem;
-  backdrop-filter: blur(12px);
-  padding: 1rem;
-  position: fixed;
-  top: 2rem;
-  right: 2rem;
-  bottom: 2rem;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: #ffffff;
+<style lang="scss" scoped>
+.container {
+  border: solid 1px rgba(255,255,255,0.1);
+  border-radius: 1.2rem;
+  overflow: hidden;
   width: 20rem;
+}
+
+.menu {
+  height: 100%;
+  backdrop-filter: blur(12px);
+  color: #ffffff;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  
+  :deep(.menu__section:not(:last-child)) {
+    border-bottom: solid 1px rgba(255,255,255,0.1);
+  }
+
+  :nth-last-child(2) {
+    flex-grow: 1;
+  }
 }
 </style>

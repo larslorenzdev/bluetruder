@@ -1,50 +1,39 @@
 <template>
-  <v-app>
-    <Menu>
-      <v-container class="d-flex flex-column h-100">
-        <div class="flex-grow-1">
-          <h1 class="text-center ">Configuration</h1>
-          <p class="mb-5">
-            <small>
-              This is a tool to generate a <code>STL</code> file for 3d printing to label cables.
-            </small>
-          </p>
-          <v-select
-              label="Model"
-              :items="baseModelConfigurations"
-              item-title="label"
-              item-value="model"
-              v-model="baseModelConfiguration"
-          />
-          <div class="dropzone" :class="{'dropzone--active': isOverDropZone}" ref="dropZoneRef" @click="onDropzoneClick">
-            <span>Click or drop SVG file here</span>
-          </div>
-        </div>
-        <v-btn @click="onDownloadClick">Download</v-btn>
-      </v-container>
-    </Menu>
-    
-    <v-main>
-      <Canvas :base="baseModelConfiguration" :icon="iconModelConfiguration" />
-    </v-main>
-
-    <v-snackbar
-        v-model="snackbar"
-        multi-line
-    >
-      File type is not supported
-
-      <template v-slot:actions>
-        <v-btn
-            color="red"
-            variant="text"
-            @click="snackbar = false"
-        >
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
-  </v-app>
+  <main>
+    <Canvas
+      :base="baseModelConfiguration"
+      :icon="iconModelConfiguration"
+    />
+  </main>
+  <Menu class="sidebar">
+    <MenuSection>
+      <MenuHeader title="Configuration" />
+      <MenuText text="This is a tool to generate a STL file for 3d printing to label cables." />
+    </MenuSection>
+    <MenuSection>
+      <select
+        v-if="false"
+        v-model="baseModelConfiguration"
+        label="Model"
+        :items="baseModelConfigurations"
+        item-title="label"
+        item-value="model"
+      />
+      <div
+        ref="dropZoneRef"
+        class="dropzone"
+        :class="{'dropzone--active': isOverDropZone}"
+        @click="onDropzoneClick"
+      >
+        <span>Click or drop SVG file here</span>
+      </div>
+    </MenuSection>
+    <MenuSection>
+      <Button @click="onDownloadClick">
+        Download
+      </Button>
+    </MenuSection>
+  </Menu>
 </template>
 
 <script setup lang="ts">
@@ -56,6 +45,10 @@ import hookModelUrl from "@/assets/hook_simple.stl?url";
 import defaultSvgUrl from "@/assets/print-solid.svg?url";
 import {useDropZone} from "@vueuse/core";
 import Menu from "@/components/Menu.vue";
+import MenuSection from "@/components/MenuSection.vue";
+import MenuHeader from "@/components/MenuHeader.vue";
+import MenuText from "@/components/MenuText.vue";
+import Button from "@/components/Button.vue";
 
 type ModelOption = {
   label: string
@@ -118,6 +111,21 @@ function onDownloadClick(){
 </script>
 
 <style lang="scss" scoped>
+main {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.sidebar {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  bottom: 1rem;
+}
+
 .dropzone {
   display: flex;
   justify-content: center;

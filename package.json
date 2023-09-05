@@ -5,20 +5,22 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint --ext .js,.vue srcya"
   },
   "dependencies": {
-    "@mdi/font": "^7.2.96",
     "@vueuse/core": "^10.4.1",
     "three": "^0.156.0",
-    "vue": "^3.3.4",
-    "vuetify": "^3.3.15"
+    "vue": "^3.3.4"
   },
   "devDependencies": {
     "@types/node": "^20.5.8",
     "@types/three": "^0.155.1",
+    "@typescript-eslint/parser": "^6.6.0",
     "@vitejs/plugin-vue": "^4.2.3",
     "autoprefixer": "^10.4.15",
+    "eslint": "^8.48.0",
+    "eslint-plugin-vue": "^9.17.0",
     "postcss": "^8.4.29",
     "sass": "^1.66.1",
     "typescript": "^5.0.2",
