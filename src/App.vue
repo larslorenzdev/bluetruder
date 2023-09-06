@@ -1,4 +1,5 @@
 <template>
+  <Header class="header" />
   <main>
     <Canvas
       :base="baseModelConfiguration"
@@ -10,16 +11,18 @@
       <MenuHeader title="Configuration" />
       <MenuText text="This is a tool to generate a STL file for 3d printing to label cables." />
     </MenuSection>
-    <MenuSection>
-      <select
-        v-if="false"
-        v-model="baseModelConfiguration"
-        label="Model"
-        :items="baseModelConfigurations"
-        item-title="label"
-        item-value="model"
-      />
+    <MenuSection title="Options">
+      <MenuOption title="Model">
+        <Select
+          v-model="baseModelConfiguration"
+          label="Model"
+          :options="baseModelConfigurations"
+          option-label="label"
+          option-value="model"
+        />
+      </MenuOption>
       <div
+        v-if="false"
         ref="dropZoneRef"
         class="dropzone"
         :class="{'dropzone--active': isOverDropZone}"
@@ -34,6 +37,7 @@
       </Button>
     </MenuSection>
   </Menu>
+  <Tooltip class="info" />
 </template>
 
 <script setup lang="ts">
@@ -49,6 +53,10 @@ import MenuSection from "@/components/MenuSection.vue";
 import MenuHeader from "@/components/MenuHeader.vue";
 import MenuText from "@/components/MenuText.vue";
 import Button from "@/components/Button.vue";
+import Header from "@/components/Header.vue";
+import Tooltip from "@/components/Tooltip.vue";
+import Select from "@/components/Select.vue";
+import MenuOption from "@/components/MenuOption.vue";
 
 type ModelOption = {
   label: string
@@ -121,9 +129,25 @@ main {
 
 .sidebar {
   position: absolute;
-  top: 1rem;
+  top: 6rem;
   left: 1rem;
   bottom: 1rem;
+  z-index: 1000;
+}
+
+.header {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  z-index: 1000;
+}
+
+.info {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
 }
 
 .dropzone {

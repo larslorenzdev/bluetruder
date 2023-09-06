@@ -17,7 +17,10 @@ import {
   Object3D,
   MathUtils,
   Material,
-  BoxHelper, PlaneGeometry, MeshBasicMaterial, DoubleSide
+  BoxHelper,
+  PlaneGeometry,
+  PCFSoftShadowMap,
+  DirectionalLight
 } from 'three';
 import {applyScale2d, getSize, moveToCenter} from "@/components/canvas/utils.ts";
 
@@ -45,10 +48,20 @@ export function useCanvasService(debug= false) {
     
     const pointLight = new PointLight(0xffffff, 10000)
     pointLight.position.set (0,50,0)
+    pointLight.castShadow = true;
+    pointLight.shadow.mapSize.width = 512; // default
+    pointLight.shadow.mapSize.height = 512; // default
+    pointLight.shadow.camera.near = 0.5; // default
+    pointLight.shadow.camera.far = 500; // default
     scene.add(pointLight)
 
-    const pointLight2 = new PointLight(0xffffff, 10000)
-    pointLight2.position.set (20,20,-20)
+    const pointLight2 = new DirectionalLight(0xffffff, 10)
+    pointLight2.position.set (20,20,-200)
+    pointLight2.castShadow = true;
+    pointLight2.shadow.mapSize.width = 512; // default
+    pointLight2.shadow.mapSize.height = 512; // default
+    pointLight2.shadow.camera.near = 0.5; // default
+    pointLight2.shadow.camera.far = 500; // default
     scene.add(pointLight2)
 
     const ambientLight = new AmbientLight(0xffffff, 1);
@@ -57,6 +70,8 @@ export function useCanvasService(debug= false) {
     const renderer = new WebGLRenderer({alpha: true});
     renderer.setSize(element.offsetWidth, element.offsetHeight );
     renderer.setClearColor( 0x000000, 0 );
+    renderer.shadowMap.type = PCFSoftShadowMap;
+    renderer.shadowMap.enabled = true;
     element.appendChild( renderer.domElement );
 
     const controls = new OrbitControls(camera, renderer.domElement)
@@ -67,18 +82,16 @@ export function useCanvasService(debug= false) {
     controls.minPolarAngle = MathUtils.degToRad(0)
     controls.enablePan = false
 
-    const geometry = new PlaneGeometry(250, 250);
-    const material = new MeshBasicMaterial({color: 0x222222, side: DoubleSide});
+    const geometry = new PlaneGeometry(50, 50);
+    geometry.rotateX(MathUtils.degToRad(90))
+    const material = new MeshStandardMaterial( { color: 0x00ff00} )
     const plane = new Mesh(geometry, material);
-    plane.rotateX(MathUtils.degToRad(90))
-    plane.position.setY(-0.1)
-    
-    const gridHelper = new GridHelper(250, 25, 0xffffff, 0xffffff);
-    gridHelper.rotateX(MathUtils.degToRad(90))
-    gridHelper.material.transparent = true;
-    gridHelper.material.opacity = 0.2;
-    plane.add(gridHelper)
-    
+    plane.receiveShadow = true;
+    plane.position.setY(-5)
+    // const gridHelper = new GridHelper(250, 25, 0xffffff, 0xffffff);
+    // gridHelper.material.transparent = true;
+    // gridHelper.material.opacity = 0.2;
+    // plane.add(gridHelper)
     scene.add(plane);
 
     if (debug) {
@@ -109,6 +122,8 @@ export function useCanvasService(debug= false) {
     
     const material = new MeshStandardMaterial( { color: 0x000000 } );
     const model = await loadStl(modelUrl, material)
+    model.castShadow = true;
+    model.receiveShadow = false
 
     // Apply scale
     model.scale.set(configuration.scale ?? 1,configuration.scale?? 1,configuration.scale ?? 1)

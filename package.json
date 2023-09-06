@@ -9,6 +9,12 @@
     "lint": "eslint --ext .js,.vue srcya"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.4.2",
+    "@fortawesome/fontawesome-svg-core": "^6.4.2",
+    "@fortawesome/free-brands-svg-icons": "^6.4.2",
+    "@fortawesome/free-regular-svg-icons": "^6.4.2",
+    "@fortawesome/free-solid-svg-icons": "^6.4.2",
+    "@fortawesome/vue-fontawesome": "latest-3",
     "@vueuse/core": "^10.4.1",
     "three": "^0.156.0",
     "vue": "^3.3.4"

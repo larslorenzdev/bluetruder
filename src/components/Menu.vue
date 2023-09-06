@@ -20,11 +20,12 @@
 
 .menu {
   height: 100%;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(1rem);
   color: #ffffff;
   width: 100%;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow);
   
   :deep(.menu__section:not(:last-child)) {
     border-bottom: solid 1px rgba(255,255,255,0.1);
