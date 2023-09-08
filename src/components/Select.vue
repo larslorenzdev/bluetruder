@@ -3,18 +3,25 @@
     class="select"
     @click="isOpen = !isOpen"
   >
-    <template v-if="optionLabel">
-      {{ model[optionLabel] }}
-    </template>
-    <template v-else>
-      {{ model }}
-    </template>
-    <template v-if="isOpen">
-      <div>
+    <div class="select__value">
+      <template v-if="optionLabel">
+        {{ model[optionLabel] }}
+      </template>
+      <template v-else>
+        {{ model }}
+      </template>
+      <FontAwesomeIcon :icon="['fas', isOpen ? 'caret-up' : 'caret-down']" />
+    </div>
+    <Transition>
+      <div
+        v-if="isOpen"
+        class="select__options"
+      >
         <div
           v-for="(option, index) in options"
           :key="index"
-          @click="onValueSelect"
+          class="select__option"
+          @click="onValueSelect(option)"
         >
           <template v-if="optionLabel">
             {{ option[optionLabel] }}
@@ -24,18 +31,18 @@
           </template>
         </div>
       </div>
-    </template>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import {shallowRef} from "vue";
+import {shallowRef, watch} from "vue";
+import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 
 type Props = {
   options: any[]
   modelValue: any
   optionLabel?: string
-  optionValue?: string
 }
 
 type Emits = {
@@ -49,21 +56,58 @@ const isOpen = shallowRef(false)
 const model = shallowRef(props.modelValue)
 
 function onValueSelect(value: any) {
-  if (props.optionValue) {
-    emit('update:modelValue', value[props.optionValue])
-  } else {
-    emit('update:modelValue', value)
-  }
+  emit('update:modelValue', value)
 }
+
+watch(() => props.modelValue, (value) => {
+  model.value = value
+})
 </script>
 
 <style lang="scss" scoped>
 .select {
+  position: relative;
   color: white;
   background-color: #343434;
   border-radius: 0.4rem;
   padding: 0.8rem 1.2rem;
   font-weight: 600;
   font-size: 0.8rem;
+  height: 1rem;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #1e1e1e;
+  }
+  
+  &__value {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  &__options{
+    position: absolute;
+    top: 2.6rem;
+    right: 0;
+    max-height: 10rem;
+    width: 100%;
+    background-color: #343434;
+    border-radius: 0.4rem;
+    overflow-y: scroll;
+    box-shadow: 0 0 2px #000000;
+  }
+  
+  &__option{
+    padding: 0.8rem 1.2rem;
+    background-color: #343434;
+    height: 1rem;
+    user-select: none;
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #1e1e1e;
+    }
+  }
 }
 </style>

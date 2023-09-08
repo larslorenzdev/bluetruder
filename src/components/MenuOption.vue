@@ -21,6 +21,7 @@ defineProps<Props>()
 .menu__option {
   display: flex;
   align-items: center;
+  margin: 1rem 0;
   
   &__title {
     width: 30%;

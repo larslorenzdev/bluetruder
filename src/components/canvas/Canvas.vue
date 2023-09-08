@@ -1,5 +1,8 @@
 <template>
-  <div class="container" ref="container"/>
+  <div
+    ref="container"
+    class="container"
+  />
 </template>
 
 <script setup lang="ts">
@@ -7,6 +10,7 @@ import {onMounted, ref, watch} from "vue";
 import {Configuration, useCanvasService} from "@/components/canvas/canvasService.ts";
 
 export type ModelConfiguration = {
+  name: string
   url: string
   configuration: Configuration
 }

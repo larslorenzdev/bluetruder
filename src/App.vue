@@ -2,6 +2,7 @@
   <Header class="header" />
   <main>
     <Canvas
+      ref="canvasElement"
       :base="baseModelConfiguration"
       :icon="iconModelConfiguration"
     />
@@ -17,19 +18,16 @@
           v-model="baseModelConfiguration"
           label="Model"
           :options="baseModelConfigurations"
-          option-label="label"
-          option-value="model"
+          option-label="name"
         />
       </MenuOption>
-      <div
-        v-if="false"
-        ref="dropZoneRef"
-        class="dropzone"
-        :class="{'dropzone--active': isOverDropZone}"
-        @click="onDropzoneClick"
-      >
-        <span>Click or drop SVG file here</span>
-      </div>
+      <MenuOption title="Icon">
+        <InputFile
+          v-model="iconFile"
+          label="Open file"
+          accept=".svg"
+        />
+      </MenuOption>
     </MenuSection>
     <MenuSection>
       <Button @click="onDownloadClick">
@@ -41,13 +39,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref} from 'vue'
+import {ref, shallowRef, watch} from 'vue'
 import { useCanvasService} from "@/components/canvas/canvasService";
 import Canvas, {type ModelConfiguration} from "@/components/canvas/Canvas.vue";
-import {downloadBlob, openFile} from '@/utils'
+import {downloadBlob} from '@/utils'
 import hookModelUrl from "@/assets/hook_simple.stl?url";
 import defaultSvgUrl from "@/assets/print-solid.svg?url";
-import {useDropZone} from "@vueuse/core";
 import Menu from "@/components/Menu.vue";
 import MenuSection from "@/components/MenuSection.vue";
 import MenuHeader from "@/components/MenuHeader.vue";
@@ -57,28 +54,24 @@ import Header from "@/components/Header.vue";
 import Tooltip from "@/components/Tooltip.vue";
 import Select from "@/components/Select.vue";
 import MenuOption from "@/components/MenuOption.vue";
+import InputFile from "@/components/InputFile.vue";
+import {useDropZone} from "@vueuse/core";
 
-type ModelOption = {
-  label: string
-  model: ModelConfiguration
-}
-
-const baseModelConfigurations: ModelOption[] = [{
-  label: 'Hook',
-  model: {
+const baseModelConfigurations: ModelConfiguration[] = [{
+    name: 'Hook',
     url: hookModelUrl,
     configuration: {
       rotationX: -90,
     }
-  }
 }]
 
-const snackbar = ref()
-const dropZoneRef = ref()
+const canvasElement = ref()
 const {exportStl} = useCanvasService()
-const { isOverDropZone } = useDropZone(dropZoneRef, loadFile)
-const baseModelConfiguration = ref<ModelConfiguration>(baseModelConfigurations[0].model)
+useDropZone(canvasElement, loadFile)
+const iconFile = shallowRef<File>()
+const baseModelConfiguration = ref<ModelConfiguration>(baseModelConfigurations[0])
 const iconModelConfiguration = ref<ModelConfiguration>({
+  name: '',
   url: defaultSvgUrl,
   configuration: {
     rotationX: 90,
@@ -99,23 +92,25 @@ function loadFile(files: File[] | null) {
       });
 
       reader.readAsDataURL(file);
-    } else {
-      snackbar.value = true
     }
-  }
-}
-
-async function onDropzoneClick () {
-  const files = await openFile('.svg')
-
-  if(files) {
-    loadFile([...files])
   }
 }
 
 function onDownloadClick(){
   downloadBlob(exportStl(), 'model.stl')
 }
+
+watch(iconFile, (value) => {
+  if (value && value.type === 'image/svg+xml'){
+    const reader = new FileReader();
+
+    reader.addEventListener('load', () => {
+      iconModelConfiguration.value.url = reader.result as string
+    });
+
+    reader.readAsDataURL(value);
+  }
+})
 </script>
 
 <style lang="scss" scoped>
@@ -148,23 +143,5 @@ main {
   bottom: 1rem;
   right: 1rem;
   z-index: 1000;
-}
-
-.dropzone {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 10rem;
-  border-style: solid;
-  background-color: rgba(255, 255, 255, 0.05);
-  border-width: 0 0 1px 0;
-  border-color: rgba(255, 255, 255, 0.4);
-  cursor: pointer;
-  
-  &:hover, &--active {
-    background-color: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 1);
-  }
 }
 </style>
