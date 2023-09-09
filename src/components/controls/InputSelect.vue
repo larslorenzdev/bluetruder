@@ -75,17 +75,16 @@ watch(() => props.modelValue, (value) => {
 <style lang="scss" scoped>
 .select {
   position: relative;
-  color: white;
-  background-color: #343434;
-  border-radius: 0.4rem;
-  padding: 0.8rem 1.2rem;
-  font-weight: 600;
-  font-size: 0.8rem;
-  height: 1rem;
+  background-color: var(--control-background-color);
+  border-radius: var(--border-radius);
+  font-weight: var(--control-font-weight);
+  padding: var(--control-padding);
+  border: var(--control-border);
   cursor: pointer;
+  width: 100%;
 
-  &:hover {
-    background-color: #1e1e1e;
+  &:hover, &:focus {
+    background-color: var(--control-background-color-focus);
   }
   
   &__value {
@@ -100,10 +99,10 @@ watch(() => props.modelValue, (value) => {
     right: 0;
     width: 100%;
     background-color: rgba(52, 52, 52, 0.6);
-    border-radius: 0.4rem;
+    border-radius: var(--border-radius);
     box-shadow: 0 0 2px #000000;
     backdrop-filter: blur(6px);
-    border: rgba(255,255,255,0.1) solid 1px;
+    border: var(--control-border);
     padding: 0.4rem 0;
   }
   
@@ -114,10 +113,11 @@ watch(() => props.modelValue, (value) => {
     user-select: none;
     cursor: pointer;
     border-radius: 0.4rem;
+    line-height: 1rem;
     
-    &:hover {
-      background-color: orangered;
-      color: black;
+    &:hover, &:focus {
+      background-color: var(--color-accent);
+      color: var(--color-accent-text);
     }
   }
 }

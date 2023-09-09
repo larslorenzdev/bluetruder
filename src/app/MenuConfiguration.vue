@@ -1,10 +1,13 @@
 <template>
   <Menu>
     <MenuSection>
-      <MenuHeader title="Configuration" />
-      <MenuText text="This is a tool to generate a STL file for 3d printing to label cables." />
+      <h1>Configuration</h1>
+      <p>This is a tool to generate a STL file for 3d printing to label cables.</p>
     </MenuSection>
-    <MenuSection title="Options">
+    <MenuSection
+      title="Options"
+      hint="fun"
+    >
       <MenuOption title="Model">
         <InputSelect
           v-model="activeConfiguration"
@@ -22,9 +25,10 @@
       </MenuOption>
     </MenuSection>
     <MenuSection>
-      <Button @click="downloadModel">
-        Download
-      </Button>
+      <Button
+        label="Download"
+        @click="downloadModel"
+      />
     </MenuSection>
   </Menu>
 </template>
@@ -34,8 +38,6 @@ import {storeToRefs} from "pinia";
 import {useConfigurationStore} from "@/stores/configurationStore.ts";
 import Menu from "@/components/menu/Menu.vue";
 import MenuSection from "@/components/menu/MenuSection.vue";
-import MenuHeader from "@/components/menu/MenuHeader.vue";
-import MenuText from "@/components/menu/MenuText.vue";
 import MenuOption from "@/components/menu/MenuOption.vue";
 import InputSelect from "@/components/controls/InputSelect.vue";
 import InputFile from "@/components/controls/InputFile.vue";

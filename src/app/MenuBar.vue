@@ -1,15 +1,22 @@
 <template>
-  <div class="header">
-    <div class="container">
+  <div class="bar">
+    <div class="bar__container">
       <span
-        class="toggle"
+        class="bar__burger-menu"
         @click="emit('toggle')"
       >
         <FontAwesomeIcon :icon="['fas', 'bars']" />
       </span>
-      <span class="title">Label Generator</span>
+      <span class="bar__title">Label Generator</span>
     </div>
-    <span class="hint">by Lars Lorenz</span>
+    <span class="bar__hint">
+      by
+      <a 
+        target="_blank"
+        href="https://larslorenz.dev"
+      >larslorenz.dev 
+      </a>
+    </span>
   </div>
 </template>
 
@@ -23,42 +30,45 @@ type Emits = {
 const emit = defineEmits<Emits>()
 </script>
 
-<style scoped>
-.header {
+<style lang="scss" scoped>
+.bar {
   height: 2rem;
-  background-color: #000000;
-  color: white;
+  background-color: var(--color-background);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
   gap: 1rem;
-  border-radius: 1rem;
+  box-shadow: var(--shadow);
+  border: var(--border);
+  border-radius: var(--border-radius-large);
   
-  .toggle {
+  &__burger-menu {
     cursor: pointer;
   }
   
-  .container {
+  &__container {
     display: flex;
     align-items: center;
     gap: 1rem;
     
     svg {
-      height: 1.5rem;
-      width: 1.5rem;
-    }
-    
-    .title {
-      font-size: 1.2rem;
-      font-weight: 700;
+      height: 1.4rem;
+      width: 1.4rem;
     }
   }
   
-  .hint {
-    font-size: 0.8rem;
+  &__title {
+    font-size: 1.4rem;
+  }
+  
+  &__hint {
     font-weight: 500;
-    color: #666666;
+    color: var(--color-text-secondary);
+    
+    a {
+      @extend .bar__hint
+    }
   }
 }
 </style>

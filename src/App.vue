@@ -2,10 +2,7 @@
   <header>
     <MenuBar @toggle="isSidebarVisible = !isSidebarVisible" />
   </header>
-  <Transition
-    @enter="onSidebarEnter"
-    @leave="onSidebarLeave"
-  >
+  <Transition name="fade">
     <aside
       v-if="isSidebarVisible"
       class="sidebar"
@@ -25,7 +22,6 @@
 
 <script setup lang="ts">
 import {ref} from 'vue'
-import gsap from "gsap";
 import MenuConfiguration from "@/app/MenuConfiguration.vue";
 import MenuBar from "@/app/MenuBar.vue";
 import Viewer from "@/app/Viewer.vue";
@@ -48,32 +44,6 @@ async function loadFile(files: File[] | null) {
       await modelStore.setIconModel(iconUrl)
     }
   }
-}
-
-
-function onSidebarEnter(element: Element, done: () => void) {
-  gsap.fromTo(element, {
-    left: '-2rem',
-    opacity: 0
-  },{
-    left: '1rem',
-    opacity: 1,
-    duration: 0.3,
-    onComplete: done
-  })
-}
-
-function onSidebarLeave(element: Element, done: () => void) {
-  gsap.fromTo(element,{
-    left: '1rem',
-    opacity: 1,
-
-  }, {
-    left: '-2rem',
-        opacity: 0,
-    duration: 0.3,
-    onComplete: done
-  })
 }
 </script>
 
@@ -107,5 +77,16 @@ header {
   bottom: 1rem;
   right: 1rem;
   z-index: 1000;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: all ease 100ms;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  left: -2rem;
+  opacity: 0;
 }
 </style>

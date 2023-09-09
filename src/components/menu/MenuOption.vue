@@ -1,11 +1,12 @@
 <template>
   <div class="menu__option">
-    <div class="menu__option__title">
+    <label
+      :for="id"
+      class="menu__option__title"
+    >
       {{ title }}
-    </div>
-    <div class="menu__option__content">
-      <slot />
-    </div>
+    </label>
+    <slot :id="id" />
   </div>
 </template>
 
@@ -15,24 +16,20 @@ type Props = {
 }
 
 defineProps<Props>()
+
+const id = `${Math.random() * 10000}`
 </script>
 
 <style lang="scss" scoped>
 .menu__option {
   display: flex;
   align-items: center;
-  margin: 1rem 0;
-  
+  margin: 1.5rem 0;
+
   &__title {
-    width: 30%;
-    font-size: 0.8rem;
+    width: 10rem;
     font-weight: 500;
-    color: #666666;
-    
-  }
-  
-  &__content {
-    width: 70%;
+    color: var(--color-text-secondary);
   }
 }
 </style>

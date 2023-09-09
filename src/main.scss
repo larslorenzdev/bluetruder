@@ -1,17 +1,72 @@
 @import "assets/font/inter.css";
 
 :root {
-  --background-color: #3a3a3a;
-  
-  --shadow: 0 0 1rem rgba(0,0,0,0.2);
+  --color-text: #ffffff;
+  --color-text-secondary: #A8A8B6;
+
+  --color-accent: #FF4500;
+  --color-accent-text: #000000;
+
+  --color-background: #171721;
+
+  --control-background-color: #20202A;
+  --control-background-color-focus: #2d2d2d;
+  --control-padding: 0.6rem 1rem;
+  --control-font-weight: 600;
+  --control-border: solid 1px rgba(255, 255, 255, 0.1);
+
+  --border: solid 1px rgb(42, 42, 42);
+
+  --border-radius: 0.4rem;
+  --border-radius-large: 1.2rem;
+
+  --shadow: 0 0 0.3rem rgba(0, 0, 0, 0.1);
+}
+
+html {
+  font-family: "Inter", system-ui;
+  font-size: 10pt;
 }
 
 body {
-  font-family: "Inter", system-ui;
-  background-color: var(--background-color);
+  color: var(--color-text);
+  background-color: #2E2E38;
   margin: 0;
 }
 
 h1 {
+  font-weight: 600;
+  font-size: 1.6rem;
   margin: 0;
+
+  &:not(:last-child) {
+    margin-bottom: 1rem;
+  }
+}
+
+h2 {
+  font-weight: 500;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+  color: var(--color-text);
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+p {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  margin: 0;
+}
+
+button {
+  cursor: pointer;
+  width: 100%;
+  color: var(--color-text);
 }

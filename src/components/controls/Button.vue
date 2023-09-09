@@ -1,28 +1,26 @@
 <template>
-  <button>
-    <slot />
-  </button>
+  <button>{{ label }}</button>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
+type Props = {
+  label?: string
+}
 
+defineProps<Props>()
 </script>
 
 <style lang="scss" scoped>
 button {
-  background-color: transparent;
-  border: solid 1px rgba(255,255,255,0.1);
-  color: white;
-  cursor: pointer;
-  border-radius: 0.4rem;
-  width: 100%;
-  padding: 0.6rem 0.8rem;
-  transition: all ease 300ms;
-  
-  
-  &:hover {
-    background-color: orangered;
-    color: black;
+  background-color: var(--control-background-color);
+  border: var(--control-border);
+  border-radius: var(--border-radius);
+  padding: var(--control-padding);
+  font-weight: var(--control-font-weight);
+
+  &:hover, &:focus {  
+    background-color: var(--color-accent);
+    color: var(--color-accent-text);
   }
 }
 </style>

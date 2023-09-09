@@ -55,6 +55,11 @@ export const useModelStore = defineStore('ModelStore', () => {
     baseModel.value.position.setY(size.y / 2)
 
     scene.value?.add(baseModel.value)
+    
+    if(iconModel.value) {
+      // TODO: This should be possible but destroys the position of the icon; i guess because of the additional group which is added to the model
+      applyConfiguration(iconModel.value, conf.value.iconModelOptions)
+    }
   }
 
   async function setIconModel(iconUrl: string) {

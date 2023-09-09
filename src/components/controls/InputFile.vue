@@ -41,14 +41,14 @@ const model = shallowRef(props.modelValue)
 const fileName = computed(() => model.value?.name)
 
 function onFileSelect() {
-  inputElement.value?.addEventListener('input',(e) => {
+  inputElement.value?.addEventListener('input', (e) => {
     const element = e.target as HTMLInputElement
-    
+
     if (element.files && element.files[0]) {
-        emit('update:modelValue', element.files[0])
+      emit('update:modelValue', element.files[0])
     }
   })
-  
+
   inputElement.value?.dispatchEvent(new MouseEvent('click'));
 }
 
@@ -59,22 +59,21 @@ watch(() => props.modelValue, (value) => {
 </script>
 
 <style lang="scss" scoped>
-.file-input{
-  padding: 0.8rem 1.2rem;
-  height: 1rem;
-  background-color: #3a3a3a;
-  border-radius: 0.4rem;
-  line-height: 1rem;
-  font-size: 0.8rem;
+.file-input {
+  padding: var(--control-padding);
+  background-color: var(--control-background-color);
+  border-radius: var(--border-radius);
+  border: var(--control-border);
   text-align: center;
   cursor: pointer;
+  font-weight: var(--control-font-weight);
+  width: 100%;
 
-  &:hover {
-    background-color: orangered;
-    color: black;
+  &:hover, &:focus {
+    background-color: var(--control-background-color-focus);
   }
-  
-  input{
+
+  input {
     display: none;
   }
 }
