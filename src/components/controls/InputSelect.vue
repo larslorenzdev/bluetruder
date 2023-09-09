@@ -1,7 +1,9 @@
 <template>
   <div
     class="select"
+    :tabindex="tabindex"
     @click="isOpen = !isOpen"
+    @blur="isOpen = false"
   >
     <div class="select__value">
       <template v-if="optionLabel">
@@ -12,7 +14,9 @@
       </template>
       <FontAwesomeIcon :icon="['fas', isOpen ? 'caret-up' : 'caret-down']" />
     </div>
-    <Transition>
+    <Transition
+      name="fade"
+    >
       <div
         v-if="isOpen"
         class="select__options"
@@ -43,13 +47,17 @@ type Props = {
   options: any[]
   modelValue: any
   optionLabel?: string
+  tabindex?: number
 }
 
 type Emits = {
   'update:modelValue': [value: unknown]
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  optionLabel: undefined,
+  tabindex: 0
+})
 const emit = defineEmits<Emits>()
 
 const isOpen = shallowRef(false)
@@ -90,24 +98,39 @@ watch(() => props.modelValue, (value) => {
     position: absolute;
     top: 2.6rem;
     right: 0;
-    max-height: 10rem;
     width: 100%;
-    background-color: #343434;
+    background-color: rgba(52, 52, 52, 0.6);
     border-radius: 0.4rem;
-    overflow-y: scroll;
     box-shadow: 0 0 2px #000000;
+    backdrop-filter: blur(6px);
+    border: rgba(255,255,255,0.1) solid 1px;
+    padding: 0.4rem 0;
   }
   
   &__option{
-    padding: 0.8rem 1.2rem;
-    background-color: #343434;
+    margin: 0.4rem 0.8rem;
+    padding: 0.4rem 0.6rem;
     height: 1rem;
     user-select: none;
     cursor: pointer;
+    border-radius: 0.4rem;
     
     &:hover {
-      background-color: #1e1e1e;
+      background-color: orangered;
+      color: black;
     }
   }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: all ease 100ms;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+  top: 2rem;
 }
 </style>

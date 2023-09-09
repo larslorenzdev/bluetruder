@@ -1,9 +1,9 @@
 <template>
-  <aside class="container">
+  <div class="container">
     <div class="menu">
       <slot />
     </div> 
-  </aside>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -16,6 +16,7 @@
   border-radius: 1.2rem;
   overflow: hidden;
   width: 20rem;
+  height: 100%;
 }
 
 .menu {

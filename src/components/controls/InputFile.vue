@@ -1,6 +1,7 @@
 <template>
   <div
     class="file-input"
+    :tabindex="tabindex"
     @click="onFileSelect"
   >
     <span v-if="fileName">{{ fileName }}</span>
@@ -20,13 +21,19 @@ type Props = {
   accept?: string
   label?: string
   modelValue?: File
+  tabindex?: number
 }
 
 type Emits = {
-  'update:modelValue': [value: unknown]
+  'update:modelValue': [value: File]
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  tabindex: 0,
+  modelValue: undefined,
+  accept: undefined,
+  label: undefined
+})
 const emit = defineEmits<Emits>()
 
 const inputElement = shallowRef<HTMLInputElement>()
@@ -63,7 +70,8 @@ watch(() => props.modelValue, (value) => {
   cursor: pointer;
 
   &:hover {
-    background-color: #1e1e1e;
+    background-color: orangered;
+    color: black;
   }
   
   input{

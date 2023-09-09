@@ -18,34 +18,18 @@ export function downloadBlob(blob: Blob, name :string) {
   document.body.removeChild(link);
 }
 
-export function openFile(accept: string): Promise<FileList | null> {
-  
-  return new Promise((resolve) => {
-    const link = document.createElement("input");
-    link.type = 'file'
-    link.accept = accept
+export async function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
 
-    document.body.appendChild(link);
+    reader.addEventListener('load', () => {
+      resolve(reader.result as string)
+    });
 
-    link.dispatchEvent(
-        new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          view: window
-        })
-    );
+    reader.addEventListener("error", (event) => {
+      reject(event)
+    });
 
-    link.addEventListener('input',(e) => {
-      const element = e.target as HTMLInputElement
-      
-      resolve(element.files)
-    })
-
-    link.addEventListener('cancel',() => {
-      resolve(null)
-    })
-
-    document.body.removeChild(link);
+    reader.readAsDataURL(file);
   })
-
 }

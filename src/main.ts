@@ -7,5 +7,10 @@ import { faBars, faInfoCircle,faCaretDown, faCaretUp } from '@fortawesome/free-s
 library.add(faBars, faInfoCircle, faCaretDown, faCaretUp)
 
 import '@/main.scss'
+import {createPinia} from "pinia";
 
-createApp(App).mount('#app')
+const pinia = createPinia()
+
+createApp(App)
+    .use(pinia)
+    .mount('#app')

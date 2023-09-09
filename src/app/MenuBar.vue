@@ -1,19 +1,30 @@
 <template>
-  <header>
+  <div class="header">
     <div class="container">
-      <FontAwesomeIcon :icon="['fas', 'bars']" />
+      <span
+        class="toggle"
+        @click="emit('toggle')"
+      >
+        <FontAwesomeIcon :icon="['fas', 'bars']" />
+      </span>
       <span class="title">Label Generator</span>
     </div>
     <span class="hint">by Lars Lorenz</span>
-  </header>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+type Emits = {
+  'toggle': []
+}
+
+const emit = defineEmits<Emits>()
 </script>
 
 <style scoped>
-header {
+.header {
   height: 2rem;
   background-color: #000000;
   color: white;
@@ -23,6 +34,10 @@ header {
   padding: 1rem 1.5rem;
   gap: 1rem;
   border-radius: 1rem;
+  
+  .toggle {
+    cursor: pointer;
+  }
   
   .container {
     display: flex;
