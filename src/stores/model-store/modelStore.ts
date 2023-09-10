@@ -10,7 +10,6 @@ import {
   useStlLoader,
   useSvgLoad,
   toStlBlob,
-  alignToYAxis,
   translateToCenter, applyScaleOptions2d
 } from "./utils";
 import {useConfigurationStore} from "@/stores/configurationStore.ts";
