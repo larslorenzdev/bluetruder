@@ -1,10 +1,15 @@
-import {defineStore} from "pinia";
-import { shallowRef, watch} from "vue";
-import { MeshStandardMaterial, Object3D, Scene} from "three";
+import {defineStore, storeToRefs} from "pinia";
+import {shallowRef, watch} from "vue";
+import {Group, MeshStandardMaterial, Object3D, Scene} from "three";
 import {initLoop} from "./loop";
-import {applyConfiguration, loadStl, loadSvg, toStlBlob} from "./utils";
-import {applyScale2d, getSize, moveToCenter} from "./helper";
-import {Configuration} from "@/stores/configurationStore.ts";
+import {
+  applyPositionOptions,
+  applyRotationOptions, applyScaleOptions2d, applyScaleOptions3d, createCenterObjectOriginGroup,
+  useStlLoader,
+  useSvgLoad,
+  toStlBlob, alignToYAxis
+} from "./utils";
+import {useConfigurationStore} from "@/stores/configurationStore.ts";
 
 export type ModelOptions = {
   rotationX?: number
@@ -17,82 +22,85 @@ export type ModelOptions = {
 }
 
 export const useModelStore = defineStore('ModelStore', () => {
+  const {activeConfiguration, iconUrl} = storeToRefs(useConfigurationStore())
   const element = shallowRef()
   const scene = shallowRef<Scene>()
-  const baseModel= shallowRef<Object3D>()
-  const iconModel= shallowRef<Object3D>()
-  const conf= shallowRef<Configuration>()
-  
-  function exportModelBlob () {
-    if (baseModel.value && iconModel.value) {
-      return toStlBlob([baseModel.value, iconModel.value])
-    }
-    
-    throw new Error()
+  const baseObject = shallowRef<Object3D>()
+  const iconObject = shallowRef<Object3D>()
+  const centerGroup = shallowRef<Group>(new Group())
+  const objectGroup = shallowRef<Group>(new Group())
+
+  function exportModelBlob() {
+    return toStlBlob([objectGroup.value])
   }
 
-  async function setBaseModel(modelUrl: string, configuration: Configuration){
-    if (baseModel.value) {
-      scene.value?.remove(baseModel.value)
-    }
-
-    conf.value = configuration
-
-    const material = new MeshStandardMaterial( { color: 0x000000 } );
-    const model = await loadStl(modelUrl, material)
+  watch(activeConfiguration, async (value) => {
+    const material = new MeshStandardMaterial({color: 0x000000});
+    const {load} = useStlLoader()
+    const model = await load(value.baseModelUrl, material)
     model.castShadow = true;
     model.receiveShadow = false
+    model.name = 'base-model'
 
-    // Apply scale
-    model.scale.set(conf.value?.baseModelOptions?.scale ?? 1,conf.value?.baseModelOptions?.scale?? 1,conf.value?.baseModelOptions?.scale ?? 1)
+    const centeredModel = createCenterObjectOriginGroup(model)
 
-    moveToCenter(model)
+    const newObjectGroup = new Group()
+    newObjectGroup.name = 'object-group'
+    newObjectGroup.add(centeredModel)
 
-    baseModel.value = applyConfiguration(model, conf.value?.baseModelOptions)
+    applyScaleOptions3d(centeredModel, value?.baseModelOptions)
+    applyPositionOptions(centeredModel, value?.baseModelOptions)
+    applyRotationOptions(centeredModel, value?.baseModelOptions)
 
-    // Set flat on surface
-    const size = getSize(baseModel.value)
-    baseModel.value.position.setY(size.y / 2)
+    const newCenterGroup = createCenterObjectOriginGroup(objectGroup.value)
+    alignToYAxis(newCenterGroup)
+    newCenterGroup.add(newObjectGroup)
 
-    scene.value?.add(baseModel.value)
-    
-    if(iconModel.value) {
-      // TODO: This should be possible but destroys the position of the icon; i guess because of the additional group which is added to the model
-      applyConfiguration(iconModel.value, conf.value.iconModelOptions)
+    scene.value?.remove(centerGroup.value)
+    scene.value?.add(newCenterGroup)
+
+    centerGroup.value = newCenterGroup
+    objectGroup.value = newObjectGroup
+    baseObject.value = centeredModel
+
+    if (iconObject.value) {
+      // applyScaleOptions2d(iconObject.value, model, value?.iconModelOptions)
+      applyPositionOptions(iconObject.value, value.iconModelOptions)
+      applyRotationOptions(iconObject.value, value.iconModelOptions)
     }
-  }
+  }, {immediate: true})
 
-  async function setIconModel(iconUrl: string) {
-    if (iconModel.value) {
-      scene.value?.remove(iconModel.value)
+  watch(iconUrl, async (value) => {
+    const material = new MeshStandardMaterial({color: 0xffffff});
+    const {load} = useSvgLoad()
+    const model = await load(value, material)
+    model.name = 'icon-model'
+
+    const centeredModel = createCenterObjectOriginGroup(model)
+
+    objectGroup.value.add(centeredModel)
+
+    if (baseObject.value) {
+      // applyScaleOptions2d(baseObject.value, model, activeConfiguration.value?.iconModelOptions)
     }
 
-    const material = new MeshStandardMaterial( {color: 0xffffff} );
-    const model = await loadSvg(iconUrl, material)
+    applyPositionOptions(centeredModel, activeConfiguration.value.iconModelOptions)
+    applyRotationOptions(centeredModel, activeConfiguration.value.iconModelOptions)
 
-    if (baseModel.value) {
-      applyScale2d(baseModel.value, model, conf.value?.iconModelOptions?.scale)
-    }
-    
-    moveToCenter(model)
-    
-    iconModel.value = applyConfiguration(model, conf.value?.iconModelOptions)
-
-    if (baseModel.value) {
-    // Set flat on base model
-    const baseModelSize = getSize(baseModel.value)
-    const iconModelSize = getSize(iconModel.value)
-    iconModel.value.position.setY((iconModelSize.y / 2) + baseModelSize.y)
+    if (iconObject.value) {
+      objectGroup.value?.remove(iconObject.value)
     }
 
-    scene.value?.add( iconModel.value );
-  }
-  
-  
-  
-  watch(element, (value)=> {
+    iconObject.value = centeredModel
+  }, {immediate: true})
+
+  watch(element, (value) => {
     scene.value = initLoop(value)
+
+    if (import.meta.env.DEV) {
+      console.log(scene.value)
+    }
   })
-  
-  return {element, setBaseModel, setIconModel, exportModelBlob}
+
+  return {element, exportModelBlob}
 })
