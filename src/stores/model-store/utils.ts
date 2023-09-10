@@ -6,15 +6,9 @@ import {ModelOptions} from "./modelStore";
 import {getCenter, getSize} from "@/stores/model-store/helper.ts";
 import {shallowRef} from "vue";
 
-export function toStlBlob(models: Object3D[]) {
+export function toStlBlob(group: Group) {
   const exporter = new STLExporter();
   const options = {binary: true}
-
-  const group = new Group()
-  models.forEach((model) => {
-    group.add(model.clone())
-  })
-
   const result = exporter.parse(group, options);
 
   return new Blob([result], {type: 'text/plain'});
@@ -26,30 +20,27 @@ export function applyScaleOptions3d(object: Object3D, configuration?: ModelOptio
   object.scale.set(scale, scale, scale)
 }
 
-export function applyScaleOptions2d(targetObject: Object3D, sourceObject: Object3D, configuration?: ModelOptions) {
-  const offset = configuration?.scale ?? 1
-  const sourceObjectSize = getSize(sourceObject)
-  const targetObjectSize = getSize(targetObject)
+export function applyScaleOptions2d(object: Object3D, configuration?: ModelOptions) {
+  const scale = configuration?.scale ?? 1
 
-  const sourceMaxDimension = Math.min(sourceObjectSize.x, sourceObjectSize.z);
-  const targetMaxDimension = Math.max(targetObjectSize.x, targetObjectSize.z);
+  object.scale.set(scale, scale, 1)
+}
 
-  const defaultScale = sourceMaxDimension / targetMaxDimension;
-  const offsetScale = defaultScale * offset;
+export function translateToCenter(object: Object3D) {
+  const center = getCenter(object)
 
-  targetObject.scale.set(offsetScale, offsetScale, 1);
+  object.translateX(-center.x);
+  object.translateY(-center.y);
+  object.translateZ(-center.z);
 }
 
 export function createCenterObjectOriginGroup(object: Object3D) {
-  const center = getCenter(object)
   const group = new Group()
   group.name = 'center-group'
 
   group.add(object);
 
-  object.translateX(-center.x);
-  object.translateY(-center.y);
-  object.translateZ(-center.z);
+  translateToCenter(object)
 
   return group
 }

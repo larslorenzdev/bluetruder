@@ -27,10 +27,11 @@ import MenuBar from "@/app/MenuBar.vue";
 import Viewer from "@/app/Viewer.vue";
 import Badge from "@/components/utils/Badge.vue";
 import {useDropZone} from "@vueuse/core";
-import {useModelStore} from "@/stores/model-store/modelStore.ts";
 import {fileToDataUrl} from "@/utils";
+import {storeToRefs} from "pinia";
+import {useConfigurationStore} from "@/stores/configurationStore.ts";
 
-const modelStore = useModelStore()
+const {iconUrl} = storeToRefs(useConfigurationStore())
 const isSidebarVisible = ref(true)
 useDropZone(document.body, loadFile)
 
@@ -39,9 +40,7 @@ async function loadFile(files: File[] | null) {
     const file = files[0];
 
     if (file.type === 'image/svg+xml') {
-      const iconUrl = await fileToDataUrl(file)
-      
-      await modelStore.setIconModel(iconUrl)
+      iconUrl.value = await fileToDataUrl(file)
     }
   }
 }

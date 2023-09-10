@@ -4,12 +4,17 @@ import {Group, MeshStandardMaterial, Object3D, Scene} from "three";
 import {initLoop} from "./loop";
 import {
   applyPositionOptions,
-  applyRotationOptions, applyScaleOptions2d, applyScaleOptions3d, createCenterObjectOriginGroup,
+  applyRotationOptions,
+  applyScaleOptions3d,
+  createCenterObjectOriginGroup,
   useStlLoader,
   useSvgLoad,
-  toStlBlob, alignToYAxis
+  toStlBlob,
+  alignToYAxis,
+  translateToCenter, applyScaleOptions2d
 } from "./utils";
 import {useConfigurationStore} from "@/stores/configurationStore.ts";
+import {getSize} from "@/stores/model-store/helper.ts";
 
 export type ModelOptions = {
   rotationX?: number
@@ -27,46 +32,48 @@ export const useModelStore = defineStore('ModelStore', () => {
   const scene = shallowRef<Scene>()
   const baseObject = shallowRef<Object3D>()
   const iconObject = shallowRef<Object3D>()
-  const centerGroup = shallowRef<Group>(new Group())
-  const objectGroup = shallowRef<Group>(new Group())
+  const mainGroup = shallowRef(new Group())
+  const objectGroup = shallowRef(new Group())
 
   function exportModelBlob() {
-    return toStlBlob([objectGroup.value])
+    return toStlBlob(objectGroup.value)
+  }
+
+  function updateObjectGroupPosition(group: Group) {
+    translateToCenter(group)
+    alignToYAxis(group)
   }
 
   watch(activeConfiguration, async (value) => {
     const material = new MeshStandardMaterial({color: 0x000000});
     const {load} = useStlLoader()
     const model = await load(value.baseModelUrl, material)
-    model.castShadow = true;
-    model.receiveShadow = false
     model.name = 'base-model'
 
-    const centeredModel = createCenterObjectOriginGroup(model)
+    const centeredBaseObject = createCenterObjectOriginGroup(model)
 
-    const newObjectGroup = new Group()
-    newObjectGroup.name = 'object-group'
-    newObjectGroup.add(centeredModel)
+    if (baseObject.value) {
+      objectGroup.value?.remove(baseObject.value)
+    }
 
-    applyScaleOptions3d(centeredModel, value?.baseModelOptions)
-    applyPositionOptions(centeredModel, value?.baseModelOptions)
-    applyRotationOptions(centeredModel, value?.baseModelOptions)
+    objectGroup.value?.add(centeredBaseObject)
 
-    const newCenterGroup = createCenterObjectOriginGroup(objectGroup.value)
-    alignToYAxis(newCenterGroup)
-    newCenterGroup.add(newObjectGroup)
+    baseObject.value = centeredBaseObject
 
-    scene.value?.remove(centerGroup.value)
-    scene.value?.add(newCenterGroup)
-
-    centerGroup.value = newCenterGroup
-    objectGroup.value = newObjectGroup
-    baseObject.value = centeredModel
+    applyScaleOptions3d(centeredBaseObject, value?.baseModelOptions)
+    applyPositionOptions(centeredBaseObject, value?.baseModelOptions)
+    applyRotationOptions(centeredBaseObject, value?.baseModelOptions)
 
     if (iconObject.value) {
-      // applyScaleOptions2d(iconObject.value, model, value?.iconModelOptions)
+      applyScaleOptions2d(iconObject.value, value.iconModelOptions)
       applyPositionOptions(iconObject.value, value.iconModelOptions)
       applyRotationOptions(iconObject.value, value.iconModelOptions)
+    }
+
+    updateObjectGroupPosition(objectGroup.value)
+
+    if (import.meta.env.DEV) {
+      console.debug('base size', getSize(centeredBaseObject))
     }
   }, {immediate: true})
 
@@ -76,29 +83,43 @@ export const useModelStore = defineStore('ModelStore', () => {
     const model = await load(value, material)
     model.name = 'icon-model'
 
-    const centeredModel = createCenterObjectOriginGroup(model)
-
-    objectGroup.value.add(centeredModel)
-
-    if (baseObject.value) {
-      // applyScaleOptions2d(baseObject.value, model, activeConfiguration.value?.iconModelOptions)
-    }
-
-    applyPositionOptions(centeredModel, activeConfiguration.value.iconModelOptions)
-    applyRotationOptions(centeredModel, activeConfiguration.value.iconModelOptions)
+    const centeredIconObject = createCenterObjectOriginGroup(model)
 
     if (iconObject.value) {
       objectGroup.value?.remove(iconObject.value)
     }
 
-    iconObject.value = centeredModel
+    objectGroup?.value.add(centeredIconObject)
+
+    iconObject.value = centeredIconObject
+
+    if (baseObject.value) {
+      applyScaleOptions2d(centeredIconObject, activeConfiguration.value?.iconModelOptions)
+    }
+
+    applyPositionOptions(centeredIconObject, activeConfiguration.value.iconModelOptions)
+    applyRotationOptions(centeredIconObject, activeConfiguration.value.iconModelOptions)
+
+    updateObjectGroupPosition(objectGroup.value)
+
+    if (import.meta.env.DEV) {
+      console.debug('icon size', getSize(centeredIconObject))
+    }
   }, {immediate: true})
 
   watch(element, (value) => {
     scene.value = initLoop(value)
 
+    mainGroup.value = new Group()
+    mainGroup.value.name = 'main-group'
+    scene.value.add(mainGroup.value)
+
+    objectGroup.value = new Group()
+    objectGroup.value.name = 'object-group'
+    mainGroup.value.add(objectGroup.value)
+
     if (import.meta.env.DEV) {
-      console.log(scene.value)
+      console.debug('main scene', scene.value)
     }
   })
 
