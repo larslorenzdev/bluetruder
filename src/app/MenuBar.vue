@@ -7,11 +7,11 @@
       >
         <FontAwesomeIcon :icon="['fas', 'bars']" />
       </span>
-      <span class="bar__title">Label Generator</span>
+      <span class="bar__title">Bluetruder</span>
     </div>
     <span class="bar__hint">
       by
-      <a 
+      <a
         target="_blank"
         href="https://larslorenz.dev"
       >larslorenz.dev 
@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome'
 
 type Emits = {
   'toggle': []
@@ -42,30 +42,30 @@ const emit = defineEmits<Emits>()
   box-shadow: var(--shadow);
   border: var(--border);
   border-radius: var(--border-radius-large);
-  
+
   &__burger-menu {
     cursor: pointer;
   }
-  
+
   &__container {
     display: flex;
     align-items: center;
     gap: 1rem;
-    
+
     svg {
       height: 1.4rem;
       width: 1.4rem;
     }
   }
-  
+
   &__title {
     font-size: 1.4rem;
   }
-  
+
   &__hint {
     font-weight: 500;
     color: var(--color-text-secondary);
-    
+
     a {
       @extend .bar__hint
     }
