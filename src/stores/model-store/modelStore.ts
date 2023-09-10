@@ -41,7 +41,7 @@ export const useModelStore = defineStore('ModelStore', () => {
 
   function updateObjectGroupPosition(group: Group) {
     translateToCenter(group)
-    alignToYAxis(group)
+    // alignToYAxis(group)
   }
 
   watch(activeConfiguration, async (value) => {
