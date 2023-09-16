@@ -23,7 +23,7 @@ const configurations: Configuration[] = [{
     rotationX: 90,
     offsetY: 1,
     offsetZ: 15,
-    scale: 0.03
+    scale: 1.6
   }
 }, {
   name: 'Clip',
@@ -35,7 +35,7 @@ const configurations: Configuration[] = [{
   iconModelOptions: {
     rotationX: 180,
     offsetZ: 8,
-    scale: 0.025
+    scale: 1.2
   }
 }]
 

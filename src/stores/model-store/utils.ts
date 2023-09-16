@@ -1,5 +1,14 @@
 import {STLExporter} from "three/examples/jsm/exporters/STLExporter";
-import {ExtrudeGeometry, Group, Material, MathUtils, Mesh, Object3D} from "three";
+import {
+  BoxGeometry,
+  ExtrudeGeometry,
+  Group,
+  Material,
+  MathUtils,
+  Mesh,
+  MeshBasicMaterial,
+  Object3D
+} from "three";
 import {STLLoader} from "three/examples/jsm/loaders/STLLoader";
 import {SVGLoader} from "three/examples/jsm/loaders/SVGLoader";
 import {ModelOptions} from "./modelStore";
@@ -12,6 +21,19 @@ export function toStlBlob(group: Group) {
   const result = exporter.parse(group, options);
 
   return new Blob([result], {type: 'text/plain'});
+}
+
+function scaleToWidth(object: Object3D, width: number) {
+  // Set default size and keep aspect ratio
+  const geometry = new BoxGeometry(width, width, width);
+  const material = new MeshBasicMaterial();
+  const cube = new Mesh(geometry, material);
+  const cubeSize = getSize(cube)
+  const objectSize = getSize(object)
+
+  const widthScale = cubeSize.x / objectSize.x
+
+  object.scale.set(widthScale, widthScale, 1)
 }
 
 export function applyScaleOptions3d(object: Object3D, configuration?: ModelOptions) {
@@ -118,6 +140,8 @@ export function useSvgLoad() {
                 group.add(mesh);
               }
             }
+
+            scaleToWidth(group, 10)
 
             resolve(group)
           },

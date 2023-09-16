@@ -23,6 +23,7 @@
           accept=".svg"
         />
       </MenuOption>
+      <MenuOption title="Scale" />
     </MenuSection>
     <MenuSection>
       <Button
@@ -47,7 +48,7 @@ import {downloadBlob} from "@/utils.ts";
 
 const configurationStore = useConfigurationStore()
 const modelStore = useModelStore()
-const {activeConfiguration , iconFile} = storeToRefs(configurationStore)
+const {activeConfiguration, iconFile} = storeToRefs(configurationStore)
 
 function downloadModel() {
   downloadBlob(modelStore.exportModelBlob(), 'model.stl')
