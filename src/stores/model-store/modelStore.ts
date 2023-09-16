@@ -1,6 +1,6 @@
 import {defineStore, storeToRefs} from "pinia";
 import {shallowRef, watch} from "vue";
-import {Group, MeshStandardMaterial, Object3D, Scene} from "three";
+import {Group, MeshStandardMaterial, Object3D, OrthographicCamera, Scene} from "three";
 import {initLoop} from "./loop";
 import {
   applyPositionOptions,
@@ -29,10 +29,12 @@ export const useModelStore = defineStore('ModelStore', () => {
   const {activeConfiguration, iconUrl, iconScale} = storeToRefs(useConfigurationStore())
   const element = shallowRef()
   const scene = shallowRef<Scene>()
+  const camera = shallowRef<OrthographicCamera>()
   const baseObject = shallowRef<Object3D>()
   const iconObject = shallowRef<Object3D>()
   const mainGroup = shallowRef(new Group())
   const objectGroup = shallowRef(new Group())
+  const zoom = shallowRef<number>(100)
 
   function exportModelBlob() {
     return toStlBlob(objectGroup.value)
@@ -113,7 +115,9 @@ export const useModelStore = defineStore('ModelStore', () => {
   })
 
   watch(element, (value) => {
-    scene.value = initLoop(value)
+    const loop = initLoop(value)
+    scene.value = loop.scene
+    camera.value = loop.camera
 
     mainGroup.value = new Group()
     mainGroup.value.name = 'main-group'
@@ -123,10 +127,22 @@ export const useModelStore = defineStore('ModelStore', () => {
     objectGroup.value.name = 'object-group'
     mainGroup.value.add(objectGroup.value)
 
+    zoom.value = Math.floor(100 * (camera.value?.zoom ?? 100))
+
+    window.addEventListener('wheel', () => {
+      zoom.value = Math.floor(100 * (camera.value?.zoom ?? 100))
+    })
+
+    watch(zoom, (value) => {
+      if (camera.value) {
+        camera.value.zoom = value / 100
+      }
+    })
+
     if (import.meta.env.DEV) {
       console.debug('main scene', scene.value)
     }
   })
 
-  return {element, exportModelBlob}
+  return {element, zoom, exportModelBlob}
 })

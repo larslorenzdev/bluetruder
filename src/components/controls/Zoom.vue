@@ -1,27 +1,30 @@
 <template>
-  <div class="slider">
+  <div class="zoom">
+    <Button
+      label="-"
+      class="zoom__button"
+      @click="onSubtract"
+    />
     <InputNumber
       v-model.number="model"
       type="number"
-      class="slider__input"
       :step="step"
       :min="min"
       :max="max"
+      class="zoom__input"
       suffix="%"
     />
-    <input
-      v-model.number="model"
-      class="slider__range"
-      type="range"
-      :min="min"
-      :max="max"
-      :step="step"
-    >
+    <Button
+      label="+"
+      class="zoom__button"
+      @click="onAdd"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import {shallowRef, watch} from "vue";
+import Button from "@/components/controls/Button.vue";
 import InputNumber from "@/components/controls/InputNumber.vue";
 
 type Props = {
@@ -36,13 +39,29 @@ type Emits = {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  min: 0,
-  max: 100,
+  min: 1,
+  max: 1,
   step: 1,
-  modelValue: 0
+  modelValue: 1
 })
 const emit = defineEmits<Emits>()
 const model = shallowRef(props.modelValue)
+
+function onAdd() {
+  if (model.value + props.step < props.max) {
+    model.value += props.step
+  } else {
+    model.value = props.max
+  }
+}
+
+function onSubtract() {
+  if (model.value - props.step > props.min) {
+    model.value -= props.step
+  } else {
+    model.value = props.min
+  }
+}
 
 watch(() => props.modelValue, (value) => {
   model.value = value
@@ -54,18 +73,19 @@ watch(model, (value) => {
 </script>
 
 <style lang="scss" scoped>
-.slider {
-  width: 100%;
+.zoom {
   display: flex;
-  gap: 1rem;
-
-  &__range {
-    width: 100%;
-  }
+  gap: 0.4rem;
+  width: 12.5rem;
+  height: 3.2rem;
 
   &__input {
-    width: 9rem;
+    flex-grow: 1;
+  }
+
+  &__button {
+    width: 3rem;
+    box-sizing: content-box;
   }
 }
-
 </style>

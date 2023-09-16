@@ -70,7 +70,7 @@ export function initLoop(element: HTMLElement) {
   const controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
   controls.maxZoom = 1
-  controls.minZoom = 0.2
+  controls.minZoom = 0.1
   // controls.maxPolarAngle = MathUtils.degToRad(75)
   // controls.minPolarAngle = MathUtils.degToRad(0)
   controls.enablePan = false
@@ -95,7 +95,8 @@ export function initLoop(element: HTMLElement) {
     renderer.render(scene, camera)
   }
 
+
   animate()
 
-  return scene
+  return {scene, camera}
 }

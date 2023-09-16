@@ -18,6 +18,16 @@
   <aside>
     <Badge class="info" />
   </aside>
+  <footer>
+    <div>
+      <Zoom
+        v-model="zoom"
+        :min="10"
+        :max="100"
+        :step="5"
+      />
+    </div>
+  </footer>
 </template>
 
 <script setup lang="ts">
@@ -30,8 +40,11 @@ import {useDropZone} from "@vueuse/core";
 import {fileToDataUrl} from "@/utils";
 import {storeToRefs} from "pinia";
 import {useConfigurationStore} from "@/stores/configurationStore.ts";
+import Zoom from "@/components/controls/Zoom.vue";
+import {useModelStore} from "@/stores/model-store/modelStore.ts";
 
 const {iconUrl} = storeToRefs(useConfigurationStore())
+const {zoom} = storeToRefs(useModelStore())
 const isSidebarVisible = ref(true)
 useDropZone(document.body, loadFile)
 
@@ -71,6 +84,15 @@ header {
   z-index: 1000;
 }
 
+footer {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+}
+
 .info {
   position: absolute;
   bottom: 1rem;
@@ -80,7 +102,7 @@ header {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: all ease 100ms;
+  transition: all ease 150ms;
 }
 
 .fade-enter-from,
