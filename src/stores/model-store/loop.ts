@@ -54,7 +54,7 @@ export function initLoop(element: HTMLElement) {
   // scene.add(plane);
 
   if (import.meta.env.DEV) {
-    const gridHelper = new GridHelper(250, 25, 0xffffff, 0xffffff);
+    const gridHelper = new GridHelper(250, 25, 0xffffff, 0x999999);
     gridHelper.material.transparent = true;
     gridHelper.material.opacity = 0.2;
     scene.add(gridHelper)

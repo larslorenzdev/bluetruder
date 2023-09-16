@@ -6,7 +6,9 @@
     >
       {{ title }}
     </label>
-    <slot :id="id" />
+    <div class="menu__option__content">
+      <slot :id="id" />
+    </div>
   </div>
 </template>
 
@@ -26,8 +28,16 @@ const id = `${Math.random() * 10000}`
   align-items: center;
   margin: 1.5rem 0;
 
+  &__content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
   &__title {
-    width: 10rem;
+    display: block;
+    width: 8rem;
     font-weight: 500;
     color: var(--color-text-secondary);
   }

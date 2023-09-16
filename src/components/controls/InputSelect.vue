@@ -82,18 +82,19 @@ watch(() => props.modelValue, (value) => {
   border: var(--control-border);
   cursor: pointer;
   width: 100%;
+  box-sizing: border-box;
 
   &:hover, &:focus {
     background-color: var(--control-background-color-focus);
   }
-  
+
   &__value {
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
-  
-  &__options{
+
+  &__options {
     position: absolute;
     top: 2.6rem;
     right: 0;
@@ -105,8 +106,8 @@ watch(() => props.modelValue, (value) => {
     border: var(--control-border);
     padding: 0.4rem 0;
   }
-  
-  &__option{
+
+  &__option {
     margin: 0.4rem 0.8rem;
     padding: 0.4rem 0.6rem;
     height: 1rem;
@@ -114,7 +115,7 @@ watch(() => props.modelValue, (value) => {
     cursor: pointer;
     border-radius: 0.4rem;
     line-height: 1rem;
-    
+
     &:hover, &:focus {
       background-color: var(--color-accent);
       color: var(--color-accent-text);

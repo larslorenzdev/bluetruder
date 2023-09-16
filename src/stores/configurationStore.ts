@@ -1,5 +1,5 @@
 import {defineStore} from "pinia";
-import {shallowRef, watch} from "vue";
+import {computed, shallowRef, toRef, watch} from "vue";
 import hookModelUrl from "@/assets/models/hook.stl?url";
 import clipModelUrl from "@/assets/models/clip.stl?url";
 import defaultIconUrl from "@/assets/icons/print.svg?url";
@@ -9,6 +9,7 @@ import {fileToDataUrl} from "@/utils.ts";
 export type Configuration = {
   name: string
   baseModelUrl: string
+  baseModelSource?: string
   baseModelOptions?: ModelOptions
   iconModelOptions?: ModelOptions
 }
@@ -16,6 +17,7 @@ export type Configuration = {
 const configurations: Configuration[] = [{
   name: 'Hook',
   baseModelUrl: hookModelUrl,
+  baseModelSource: 'https://www.printables.com/de/model/124389-cable-tag-set',
   baseModelOptions: {
     rotationX: -90,
   },
@@ -40,9 +42,21 @@ const configurations: Configuration[] = [{
 }]
 
 export const useConfigurationStore = defineStore('ConfigurationStore', () => {
-  const activeConfiguration = shallowRef<Configuration>(configurations[0])
+  const activeConfiguration = toRef<Configuration>(configurations[0])
   const iconFile = shallowRef<File>()
   const iconUrl = shallowRef<string>(defaultIconUrl)
+  const iconScale = computed({
+    get() {
+      return activeConfiguration.value.iconModelOptions?.scale ?? 1
+    },
+    set(newValue) {
+      if (!activeConfiguration.value.iconModelOptions) {
+        activeConfiguration.value.iconModelOptions = {}
+      }
+
+      activeConfiguration.value.iconModelOptions.scale = newValue
+    }
+  })
 
   watch(iconFile, async (value) => {
     if (value) {
@@ -50,5 +64,5 @@ export const useConfigurationStore = defineStore('ConfigurationStore', () => {
     }
   })
 
-  return {configurations, activeConfiguration, iconFile, iconUrl}
+  return {configurations, activeConfiguration, iconFile, iconUrl, iconScale}
 })

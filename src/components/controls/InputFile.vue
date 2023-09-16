@@ -4,8 +4,7 @@
     :tabindex="tabindex"
     @click="onFileSelect"
   >
-    <span v-if="fileName">{{ fileName }}</span>
-    <span v-else>{{ label }}</span>
+    <span>{{ label }}</span>
     <input
       ref="inputElement"
       type="file"
@@ -15,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, shallowRef, watch} from "vue";
+import {shallowRef, watch} from "vue";
 
 type Props = {
   accept?: string
@@ -38,7 +37,6 @@ const emit = defineEmits<Emits>()
 
 const inputElement = shallowRef<HTMLInputElement>()
 const model = shallowRef(props.modelValue)
-const fileName = computed(() => model.value?.name)
 
 function onFileSelect() {
   inputElement.value?.addEventListener('input', (e) => {
@@ -68,6 +66,7 @@ watch(() => props.modelValue, (value) => {
   cursor: pointer;
   font-weight: var(--control-font-weight);
   width: 100%;
+  box-sizing: border-box;
 
   &:hover, &:focus {
     background-color: var(--control-background-color-focus);

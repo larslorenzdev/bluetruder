@@ -26,7 +26,7 @@ export type ModelOptions = {
 }
 
 export const useModelStore = defineStore('ModelStore', () => {
-  const {activeConfiguration, iconUrl} = storeToRefs(useConfigurationStore())
+  const {activeConfiguration, iconUrl, iconScale} = storeToRefs(useConfigurationStore())
   const element = shallowRef()
   const scene = shallowRef<Scene>()
   const baseObject = shallowRef<Object3D>()
@@ -64,7 +64,7 @@ export const useModelStore = defineStore('ModelStore', () => {
     applyRotationOptions(centeredBaseObject, value?.baseModelOptions)
 
     if (iconObject.value) {
-      applyScaleOptions2d(iconObject.value, value.iconModelOptions)
+      applyScaleOptions2d(iconObject.value, value.iconModelOptions?.scale)
       applyPositionOptions(iconObject.value, value.iconModelOptions)
       applyRotationOptions(iconObject.value, value.iconModelOptions)
     }
@@ -93,7 +93,7 @@ export const useModelStore = defineStore('ModelStore', () => {
     iconObject.value = centeredIconObject
 
     if (baseObject.value) {
-      applyScaleOptions2d(centeredIconObject, activeConfiguration.value?.iconModelOptions)
+      applyScaleOptions2d(centeredIconObject, activeConfiguration.value?.iconModelOptions?.scale)
     }
 
     applyPositionOptions(centeredIconObject, activeConfiguration.value.iconModelOptions)
@@ -105,6 +105,12 @@ export const useModelStore = defineStore('ModelStore', () => {
       console.debug('icon size', getSize(centeredIconObject))
     }
   }, {immediate: true})
+
+  watch(iconScale, (value) => {
+    if (iconObject.value) {
+      applyScaleOptions2d(iconObject.value, value)
+    }
+  })
 
   watch(element, (value) => {
     scene.value = initLoop(value)

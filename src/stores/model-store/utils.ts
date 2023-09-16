@@ -42,9 +42,7 @@ export function applyScaleOptions3d(object: Object3D, configuration?: ModelOptio
   object.scale.set(scale, scale, scale)
 }
 
-export function applyScaleOptions2d(object: Object3D, configuration?: ModelOptions) {
-  const scale = configuration?.scale ?? 1
-
+export function applyScaleOptions2d(object: Object3D, scale = 1) {
   object.scale.set(scale, scale, 1)
 }
 
