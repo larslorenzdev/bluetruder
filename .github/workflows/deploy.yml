@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  netlify:
     runs-on: ubuntu-latest
     steps:
       - name: Repository Checkout
@@ -19,7 +19,7 @@ jobs:
       - name: Set Node.js version
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version-file: .nvmrc
 
       - name: Install Netlify
         run: yarn global add netlify-cli@17.10.1
@@ -38,21 +38,27 @@ jobs:
             --site ${{ secrets.NETLIFY_SITE_ID }} \
             --auth ${{ secrets.NETLIFY_TOKEN }} \
             --prod
+
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+
       - name: Install Dependencies
         run: yarn install
+
       - name: Build
         run: yarn build
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ".dist"
+
   deploy:
     environment:
       name: github-pages
